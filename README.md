@@ -1,6 +1,6 @@
 # MD-Simulation-Data-Analysis
 
-Meant to be used in combination with the [MD-Simulation](https://github.com/GiannisNikiteas/MD-simulation) in order to assist in the analysis of the properties od the MD fluid.
+Meant to be used in combination with the [MD-Simulation](https://github.com/GiannisNikiteas/MD-simulation) in order to assist in the analysis of the MD fluid.
 
 ## Getting Started
 
