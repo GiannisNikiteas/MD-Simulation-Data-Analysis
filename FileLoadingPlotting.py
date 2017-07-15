@@ -34,15 +34,18 @@ def energy_plots(power, par_a):
     power_str = str(power)
     A = "{:.2f}".format(par_a)
 
-    KinEn = "KinEn" + power_str + sep+ A+".txt"
-    PotEn = "PotEn" + power_str + sep+ A+".txt"
-    TotEn = "TotEn" + power_str + sep+ A+ ".txt"
+    Data = "Data" + power_str + sep+ A+".txt"
 
     #  Loads the files from the dir
-    num_lines = sum(1 for line in open(KinEn))  # Calculates the num of lines in a file
-    KE = np.loadtxt(KinEn, delimiter="\n")
-    U = np.loadtxt(PotEn, delimiter="\n")
-    Tot = np.loadtxt(TotEn, delimiter="\n")
+    # num_lines = sum(1 for line in open(Data))  # Calculates the num of lines in a file
+    num_lines = 0
+    for line in open(Data):
+        if line.startswith('#'):
+            continue
+        num_lines += 1
+
+    KE, U, Tot = np.loadtxt(Data, usecols=(1,2,3), delimiter='\t',
+                            comments='#', unpack=True)
 
     #  Plots the Energies
     step = 0.005
@@ -68,10 +71,6 @@ def energy_plots(power, par_a):
     x_r = time/2 -time/4
     # Kin.set_title('Individual Plots n = %d' %power, fontsize=17)
     Kin.set_title('Individual Plots', fontsize=17)
-    # Kin.text(x_r, k*1.5, 'Kinetic Energy', fontsize=10)
-    # Pot.text(x_r, u/1.2, 'Potential Energy', fontsize=10)
-    # TOT.text(x_r, t*1.1, 'Total Energy', fontsize=10)
-    # All.set_title('Total Energy, Kinetic and Potential',fontsize=17)
     All.set_title('Energy Contributions',fontsize=17)
     All.set_xlabel(r"Time $t$",fontsize=16)
 
@@ -94,13 +93,10 @@ def particle_plot(power, par_a):
     power_str = str(power)
     A = "{:.2f}".format(par_a)
 
-    RX = "Loadrx"+power_str+ sep+ A+ ".txt"
-    RY = "Loadry"+power_str+ sep+ A+ ".txt"
-    RZ = "Loadrz"+power_str+ sep+ A+ ".txt"
+    data = "Positions_Velocities"+power_str+ sep+ A+ ".txt"
 
-    rx = np.loadtxt(RX, delimiter='\n')
-    ry = np.loadtxt(RY, delimiter='\n')
-    rz = np.loadtxt(RZ, delimiter='\n')
+    rx, ry, rz = np.loadtxt(data, usecols=(0,1,2), delimiter='\t',
+                            comments='#', unpack=True)
     col = np.sqrt(rx**2+ry**2)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -113,19 +109,13 @@ def vector_field(power, par_a):
     power_str = str(power)
     A = "{:.2f}".format(par_a)
 
-    RX = "Loadrx" + power_str + sep + A + ".txt"
-    RY = "Loadry" + power_str + sep + A + ".txt"
-    RZ = "Loadrz" + power_str + sep + A + ".txt"
-    VX = "Loadvx" + power_str + sep + A + ".txt"
-    VY = "Loadvy" + power_str + sep + A + ".txt"
-    VZ = "Loadvz" + power_str + sep + A + ".txt"
+    data = "Positions_Velocities" + power_str + sep + A + ".txt"
 
-    rx = np.loadtxt(RX, delimiter='\n')
-    ry = np.loadtxt(RY, delimiter='\n')
-    rz = np.loadtxt(RZ, delimiter='\n')
-    vx = np.loadtxt(VX, delimiter='\n')
-    vy = np.loadtxt(VY, delimiter='\n')
-    vz = np.loadtxt(VZ, delimiter='\n')
+    rx, ry, rz, vx, vy, vz = np.loadtxt(data,
+                                        usecols=(0,1,2,3,4,5),  # redundant
+                                        delimiter='\t',
+                                        comments='#',
+                                        unpack=True)
 
     # num_lines = sum(1 for line in open(RX))  # Calculates the num of lines in a file
     # plt.figure(1)
@@ -137,9 +127,6 @@ def vector_field(power, par_a):
     Q = plt.quiver(rx,ry,vx,vy,rz,label=name, cmap='gnuplot_r')
     #plt.scatter(rx,ry, s=4, c='black')
     plt.colorbar(Q)
-    # plt.xlim(xmax=10.05)
-    # plt.ylim(ymax=10.05)
-    # plt.title('Velocity vector field for n = %d' %power)
     plt.legend(loc="upper right")
 
 
@@ -149,7 +136,7 @@ def radial_dist_func(power, par_a):
     power_str = str(int(power))
     A = "{:.2f}".format(par_a)
     HIST = "Hist" + power_str + sep+A+".txt"
-    #num_lines = len(open(HIST))
+    # num_lines = len(open(HIST))
     num_lines = sum(1 for line in open(HIST))   # yields size=101, index=100
     Hist = np.loadtxt(HIST, delimiter="\n")
     # gr is supposed to have 101 entries since the boundaries are 0 and cut_off
@@ -184,7 +171,6 @@ def radial_dist_func(power, par_a):
     plt.legend(loc="upper right", fancybox=True)
     c += 1
     line_it += 1
-    print(Hist)
 
 
 # VAF
@@ -275,17 +261,23 @@ def pc(power, par_a):
     power_str = str(power)
     A = "{:.2f}".format(par_a)
 
-    vaf = "PressureC" + power_str + sep + A + ".txt"
+    Pc = "Data" + power_str + sep + A + ".txt"
 
-    cr = np.loadtxt(vaf, delimiter='\n')
-    num_lines = sum(1 for line in open(vaf))
-    time  = num_lines*0.005
+    cr = np.loadtxt(Pc, usecols=4, delimiter='\t',
+                    comments='#', unpack=True)
+    num_lines = 0
+    for line in open(Pc):
+        if line.startswith('#'):
+            continue
+        num_lines += 1
+
+    time = num_lines*0.005
     xxx = np.linspace(0, time, num=num_lines)
 
     name = "n: " + power_str + "  A: " + A
     plt.figure(5)
 
-    plt.plot(xxx, cr, label=name)#,color=color_sequence[p])
+    plt.plot(xxx, cr, label=name)   # color=color_sequence[p])
     plt.xlabel(r"Time $t$", size=18)
     plt.ylabel(r"Configurational Pressure $P_C$", size=18)
     # plt.ylim(0,0.1)
@@ -416,13 +408,10 @@ def diffusion_plot(power):
     # np.savetxt("../../PlotAnalysis/reduced dif y hint n=%d.txt"%power, reduced_dif_y_int, fmt='%.5f')
     name = "n: "+str(power)
     steps = ['5k','10k','12.5k','15k','20k']
-    #name = steps[s]
-    #s += 1
+
 
     plt.figure(66)
-    plt.plot(my_list, dif_coef, '--o', label=name)#, color=color_sequence[v])
-    #plt.plot(my_list, reduced_dif_coef[j:j+15], 'bo')
-    #plt.title(r"Diffusion coefficient against $A$") #%power) # for n = %d
+    plt.plot(my_list, dif_coef, '--o', label=name)  # color=color_sequence[v])
     plt.xlabel(r"$A$", fontsize=16)
     plt.ylabel(r"$D$", fontsize=16)
     plt.legend(loc="lower right", fancybox=True, ncol=2, labelspacing=0.05, handletextpad=0.5,fontsize=16)
