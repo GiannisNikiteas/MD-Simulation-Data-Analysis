@@ -13,7 +13,9 @@ class FilePlotting:
     Constructor purposely does not have any arguments
     """
 
-    def __init__(self):
+    def __init__(self, __step, __particles):
+        self.step_str = str(__step)
+        self.particles_str = str(__particles)
         self.sep = "_"
         self.dif_coef = np.array([])
         self.reduced_dif_coef = np.array([])
@@ -39,20 +41,38 @@ class FilePlotting:
         self.s = 0
         self.line_it = 0
 
-    def energy_plots(self, power, par_a):
-        power_str = str(power)
-        A = "{:.2f}".format(par_a)
-        Data = "Data" + power_str + self.sep + A + ".txt"
+    def file_searcher(self, rho, t, n, a):
+        """
+        Constructs the file signature of the MD simulation in order for the information to be read
+        :param rho: density
+        :param t:   temperature
+        :param n:   potential strength
+        :param a:   softness parameter
+        :return: string with file identifier
+        """
+        p_str = self.particles_str
+        rho_str = "{:.2f}".format(rho)
+        t_str = "{:.2f}".format(t)
+        n_str = str(n)
+        a_str = "{:.4f}".format(a)
+
+        name_id = '_step_' + self.step_str + '_particles_' + p_str + '_rho_' + \
+                  rho_str + '_T_' + t_str + '_n_' + n_str + '_A_' + a_str
+        return name_id
+
+    def energy_plots(self, rho, t, power, par_a):
+        file_id = self.file_searcher(rho, t, power, par_a)
+        data = "Data" + file_id + ".txt"
 
         #  Loads the files from the dir
         # num_lines = sum(1 for line in open(Data))  # Calculates the num of lines in a file
         num_lines = 0
-        for line in open(Data):
+        for line in open(data):
             if line.startswith('#'):
                 continue
             num_lines += 1
 
-        KE, U, Tot = np.loadtxt(Data, usecols=(1, 2, 3), delimiter='\t',
+        KE, U, Tot = np.loadtxt(data, usecols=(1, 2, 3), delimiter='\t',
                                 comments='#', unpack=True)
 
         #  Plots the Energies
@@ -93,17 +113,17 @@ class FilePlotting:
         All.plot(x, KE, 'r', x, U, 'g', x, Tot, 'b')
         All.set_ylim(ymax=5)
 
-    def potential_data(self, power, par_a):
-        power_str = str(power)
-        A = "{:.2f}".format(par_a)
-        Data = "Data" + power_str + self.sep + A + ".txt"
+    def potential_data(self, rho, t, power, par_a):
+        file_id = self.file_searcher(rho, t, power, par_a)
+        data = "Data" + file_id + ".txt"
+
         num_lines = 0
-        for line in open(Data):
+        for line in open(data):
             if line.startswith('#'):
                 continue
             num_lines += 1
 
-        U = np.loadtxt(Data, usecols=2, delimiter='\t', comments='#', unpack=True)
+        U = np.loadtxt(data, usecols=2, delimiter='\t', comments='#', unpack=True)
 
         #  Plots the Energies
         name = 'n: ' + power_str + 'A: ' + A
@@ -114,17 +134,9 @@ class FilePlotting:
         plt.plot(x, U, label=name)
         plt.legend(loc='best', fancybox=True)
 
-    def particle_plot(self, power, par_a):
-        """
-        3D Plot of the cubic container showcasing the position of the particles
-        :param power: n of the pair potential
-        :param par_a: parameter A of the pair potential
-        :return:
-        """
-        power_str = str(power)
-        A = "{:.2f}".format(par_a)
-
-        data = "Positions_Velocities" + power_str + self.sep + A + ".txt"
+    def particle_plot(self, rho, t, power, par_a):
+        file_id = self.file_searcher(rho, t, power, par_a)
+        data = "Positions_Velocities" + file_id + ".txt"
 
         rx, ry, rz = np.loadtxt(data, usecols=(0, 1, 2), delimiter='\t',
                                 comments='#', unpack=True)
@@ -133,10 +145,9 @@ class FilePlotting:
         S = ax.scatter(rx, ry, rz, c=rz, cmap='gnuplot_r')
         plt.colorbar(S)
 
-    def vector_field(self, power, par_a):
-        power_str = str(power)
-        A = "{:.2f}".format(par_a)
-        data = "Positions_Velocities" + power_str + self.sep + A + ".txt"
+    def vector_field(self, rho, t, power, par_a):
+        file_id = self.file_searcher(rho, t, power, par_a)
+        data = "Positions_Velocities" + file_id + ".txt"
 
         rx, ry, rz, vx, vy, vz = np.loadtxt(data,
                                             usecols=(0, 1, 2, 3, 4, 5),  # redundant
@@ -156,10 +167,9 @@ class FilePlotting:
         plt.colorbar(Q)
         plt.legend(loc="best")
 
-    def vector_field3D(self, power, par_a):
-        power_str = str(power)
-        A = "{:.2f}".format(par_a)
-        data = "Positions_Velocities" + power_str + self.sep + A + ".txt"
+    def vector_field3D(self, rho, t, power, par_a):
+        file_id = self.file_searcher(rho, t, power, par_a)
+        data = "Positions_Velocities" + file_id + ".txt"
 
         rx, ry, rz, vx, vy, vz = np.loadtxt(data,
                                             usecols=(0, 1, 2, 3, 4, 5),  # redundant
@@ -177,12 +187,11 @@ class FilePlotting:
         plt.legend(loc="best")
 
     # RDF Histogram
-    def radial_dist_func(self, power, par_a):
-        power_str = str(int(power))
-        A = "{:.2f}".format(par_a)
-        HIST = "Hist" + power_str + self.sep + A + ".txt"
-        num_lines = sum(1 for line in open(HIST))  # yields size=101, index=100
-        Hist = np.loadtxt(HIST, delimiter="\n")
+    def radial_dist_func(self, rho, t, power, par_a):
+        file_id = self.file_searcher(rho, t, power, par_a)
+        data = "Hist" + file_id + ".txt"
+        num_lines = sum(1 for line in open(data))  # yields size=101, index=100
+        rdf = np.loadtxt(data, delimiter="\n")
         # gr is supposed to have 101 entries since the boundaries are 0 and cut_off
         # and both of them are inclusive
         print(num_lines)
@@ -197,13 +206,13 @@ class FilePlotting:
         force_max = (par_a
                      / (1. + pwr)) ** (0.5)
         x = np.multiply(x, dr)
-        x = np.multiply(x, 1/par_a)
-        name = "n: " + power_str + "  A: " + A  # "n: " + power_str +
-        max_scaling = np.max(Hist)  # Scaling the ymax
+        x = np.multiply(x, 1)
+        # name = "n: " + power_str + "  A: " + A  # "n: " + power_str +
+        max_scaling = np.max(rdf)  # Scaling the ymax
         iso = np.sqrt(1 - par_a)
 
         plt.figure('Radial Distribution Function')
-        plt.plot(x, Hist, '-', markersize=4, label=name, color=self.color_sequence2[self.c])
+        plt.plot(x, rdf, '-', markersize=4, color=self.color_sequence2[self.c])
 
         # Plot adjustments
         plt.xlabel(r"$r$", fontsize=16)
@@ -217,12 +226,9 @@ class FilePlotting:
         self.line_it += 1
 
     # VAF
-    def velocity_autocorrelation_func(self, power, par_a):
-        # Changes the directory
-        power_str = str(power)
-        A = "{:.2f}".format(par_a)
-
-        vaf = "VAF" + power_str + self.sep + A + ".txt"
+    def velocity_autocorrelation_func(self, rho, t, power, par_a):
+        file_id = self.file_searcher(rho, t, power, par_a)
+        vaf = "VAF" + file_id + ".txt"
 
         cr = np.loadtxt(vaf, delimiter='\n')
         num_lines = sum(1 for line in open(vaf))
@@ -232,7 +238,7 @@ class FilePlotting:
         if num_lines < 110000:
             name = "n: " + power_str + "  A: " + A
 
-        plt.figure('Velocity Autocorrelation Fucntion')
+        plt.figure('Velocity Autocorrelation Function')
         y = np.full(num_lines, 0)
         xx = np.full(num_lines, time)
         yy = np.linspace(5, -0.5, num_lines)
@@ -249,12 +255,9 @@ class FilePlotting:
         self.p += 1
 
     # MSD
-    def mean_square_displacement(self, power, par_a):
-        # Changes the directory
-        power_str = str(power)
-        A = "{:.2f}".format(par_a)
-
-        msd = "MSD" + power_str + self.sep + A + ".txt"
+    def mean_square_displacement(self, rho, t, power, par_a):
+        file_id = self.file_searcher(rho, t, power, par_a)
+        msd = "MSD" + file_id + ".txt"
 
         MSD = np.loadtxt(msd, delimiter='\n')
 
@@ -294,12 +297,9 @@ class FilePlotting:
         self.p += 1
 
     # Pressure C
-    def pc(self, power, par_a):
-        # Changes the directory
-        power_str = str(power)
-        A = "{:.2f}".format(par_a)
-
-        Pc = "Data" + power_str + self.sep + A + ".txt"
+    def pc(self, rho, t, power, par_a):
+        file_id = self.file_searcher(rho, t, power, par_a)
+        Pc = "Data" + file_id + ".txt"
 
         cr = np.loadtxt(Pc, usecols=4, delimiter='\t',
                         comments='#', unpack=True)
@@ -325,6 +325,7 @@ class FilePlotting:
         self.p += 1
 
     # Averages
+    # TODO: Look how AVG files are named and fix
     @staticmethod
     def avg_pressure(power):
         power_str = str(power)
@@ -420,7 +421,7 @@ class FilePlotting:
         All.set_ylim(ymax=6)
         All.locator_params(axis='x', nbins=4)
 
-    def diffusion_plot(self, power, my_list):
+    def diffusion_plot(self, rho, t, power, my_list):
         """
         Plots a graph of the Diffusion coefficients D against a list of parameter A values
         :param power: Potential strength parameter n
@@ -433,7 +434,7 @@ class FilePlotting:
         #            2.75, 4.00]
 
         for i in my_list:
-            self.mean_square_displacement(power, i)
+            self.mean_square_displacement(rho, t, power, i)
             print("-----------------------------")
 
         # File saving Dif coe
@@ -535,17 +536,9 @@ class FilePlotting:
 
         self.c += 1
 
-    def vel_dist(self, power, par_a):
-        """
-        Profiling of the velocity distribution of the fluid, compared to a
-        Maxwell Boltzmann distribution, with parameters extracted from the data.
-        :param power: Potential strength n.
-        :param par_a: Smothening parameter A.
-        :return: Figure comparing an M&B distribution with data obtained from the simulation.
-        """
-        power_str = str(power)
-        A = "{:.2f}".format(par_a)
-        data = "Positions_Velocities" + power_str + self.sep + A + ".txt"
+    def vel_dist(self, rho, t, power, par_a):
+        file_id = self.file_searcher(rho, t, power, par_a)
+        data = "MSD" + file_id + ".txt"
         name = "n: " + power_str + " A: " + A
         vx, vy, vz = np.loadtxt(data,
                                 usecols=(3, 4, 5),
