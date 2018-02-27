@@ -16,6 +16,10 @@ class FilePlotting:
     def __init__(self, __step, __particles):
         self.step_str = str(__step)
         self.particles_str = str(__particles)
+        self.rho_str = None
+        self.t_str = None
+        self.n_str = None
+        self.a_str = None
         self.sep = "_"
         self.dif_coef = np.array([])
         self.reduced_dif_coef = np.array([])
@@ -51,13 +55,13 @@ class FilePlotting:
         :return: string with file identifier
         """
         p_str = self.particles_str
-        rho_str = "{:.2f}".format(rho)
-        t_str = "{:.2f}".format(t)
-        n_str = str(n)
-        a_str = "{:.4f}".format(a)
+        self.rho_str = "{:.2f}".format(rho)
+        self.t_str = "{:.2f}".format(t)
+        self.n_str = str(n)
+        self.a_str = "{:.4f}".format(a)
 
         name_id = '_step_' + self.step_str + '_particles_' + p_str + '_rho_' + \
-                  rho_str + '_T_' + t_str + '_n_' + n_str + '_A_' + a_str
+                  self.rho_str + '_T_' + self.t_str + '_n_' + self.n_str + '_A_' + self.a_str
         return name_id
 
     def energy_plots(self, rho, t, power, par_a):
@@ -126,7 +130,7 @@ class FilePlotting:
         U = np.loadtxt(data, usecols=2, delimiter='\t', comments='#', unpack=True)
 
         #  Plots the Energies
-        name = 'n: ' + power_str + 'A: ' + A
+        name = 'n: ' + self.n_str + 'A: ' + self.a_str
         step = 0.005
         time = num_lines * step
         x = np.linspace(0, time, num_lines)
@@ -161,7 +165,7 @@ class FilePlotting:
         # erx = np.sqrt(vx**2+vz**2)
         # ery = np.sqrt(vy**3+vz**2)
         plt.figure('2D Vector Field of particles')
-        name = "n: " + power_str + "  A: " + A
+        name = "n: " + self.n_str + "  A: " + self.a_str
         Q = plt.quiver(rx, ry, vx, vy, rz, pivot='mid', cmap='gnuplot_r', alpha=0.75, label=name)
         # plt.scatter(rx, ry, alpha=0.4, label=name)
         plt.colorbar(Q)
@@ -179,7 +183,7 @@ class FilePlotting:
         fig = plt.figure('3D Vector Field of particles')
         ax = fig.gca(projection='3d')
         # v = np.sqrt(vx**2 + vy**2 + vz**2)
-        name = "n: " + power_str + "  A: " + A
+        name = "n: " + self.n_str + "  A: " + self.a_str
         Q = plt.quiver(rx, ry, rz, vx, vy, vz, rz,
                        label=name, alpha=0.7, normalize=True,
                        cmap='gnuplot_r')
@@ -207,12 +211,12 @@ class FilePlotting:
                      / (1. + pwr)) ** (0.5)
         x = np.multiply(x, dr)
         x = np.multiply(x, 1)
-        # name = "n: " + power_str + "  A: " + A  # "n: " + power_str +
+        name = "n: " + self.n_str + "  A: " + self.a_str
         max_scaling = np.max(rdf)  # Scaling the ymax
         iso = np.sqrt(1 - par_a)
 
         plt.figure('Radial Distribution Function')
-        plt.plot(x, rdf, '-', markersize=4, color=self.color_sequence2[self.c])
+        plt.plot(x, rdf, '-', markersize=4, label=name, color=self.color_sequence2[self.c])
 
         # Plot adjustments
         plt.xlabel(r"$r$", fontsize=16)
@@ -236,7 +240,7 @@ class FilePlotting:
         xxx = np.linspace(0, time, num=num_lines)
         name = ""
         if num_lines < 110000:
-            name = "n: " + power_str + "  A: " + A
+            name = "n: " + self.n_str + "  A: " + self.a_str
 
         plt.figure('Velocity Autocorrelation Function')
         y = np.full(num_lines, 0)
@@ -286,7 +290,7 @@ class FilePlotting:
               'R value: ', r_value, '\n',
               'Fit Error: ', std_err)
 
-        name = "n: " + power_str + "  A: " + A
+        name = "n: " + self.n_str + "  A: " + self.a_str
         plt.figure('Mean Square Displacement')
         plt.plot(x, MSD, label=name)  # , color=color_sequence[p])
         plt.xlabel(r"$t$", fontsize=16)
@@ -312,7 +316,7 @@ class FilePlotting:
         time = num_lines * 0.005
         xxx = np.linspace(0, time, num=num_lines)
 
-        name = "n: " + power_str + "  A: " + A
+        name = "n: " + self.n_str + "  A: " + self.a_str
         plt.figure('Configurational Pressure')
 
         plt.plot(xxx, cr, label=name)  # color=color_sequence[p])
@@ -326,12 +330,13 @@ class FilePlotting:
 
     # Averages
     # TODO: Look how AVG files are named and fix
+    # TODO: Probably these methods will not be static after fixing
     @staticmethod
     def avg_pressure(power):
-        power_str = str(power)
+        n_str = str(power)
 
-        PC = "AVGdata" + power_str + ".txt"
-        name = "n: " + power_str
+        PC = "AVGdata" + n_str + ".txt"
+        name = "n: " + n_str
 
         num_lines = sum(1 for line in open(PC))
         a, Pc = np.loadtxt(PC, delimiter='\t', comments='#', usecols=(0, 5), unpack=True)
@@ -346,10 +351,10 @@ class FilePlotting:
 
     @staticmethod
     def avg_Kin(power):
-        power_str = str(power)
+        n_str = str(power)
 
-        K = "AVGdata" + power_str + ".txt"
-        name = "n: " + power_str
+        K = "AVGdata" + n_str + ".txt"
+        name = "n: " + n_str
 
         a, k = np.loadtxt(K, delimiter='\t', comments='#', usecols=(0, 2), unpack=True)
 
@@ -362,10 +367,10 @@ class FilePlotting:
 
     @staticmethod
     def avg_Pot(power):
-        power_str = str(power)
+        n_str = str(power)
 
-        K = "AVGdata" + power_str + ".txt"
-        name = "n: " + power_str
+        K = "AVGdata" + n_str + ".txt"
+        name = "n: " + n_str
 
         a, k = np.loadtxt(K, delimiter='\t', comments='#', usecols=(0, 3), unpack=True)
 
@@ -379,10 +384,10 @@ class FilePlotting:
     @staticmethod
     def avg_en(power):
         # Changes the directory
-        power_str = str(power)
+        n_str = str(power)
 
-        E = "AVGdata" + power_str + ".txt"
-        name = "n: " + power_str
+        E = "AVGdata" + n_str + ".txt"
+        name = "n: " + n_str
 
         num_lines = sum(1 for line in open(E))
 
@@ -423,7 +428,9 @@ class FilePlotting:
 
     def diffusion_plot(self, rho, t, power, my_list):
         """
-        Plots a graph of the Diffusion coefficients D against a list of parameter A values
+        A graph of the Diffusion coefficients D against a list of parameter A values
+        :param rho: Density
+        :param t: Temperature
         :param power: Potential strength parameter n
         :param my_list: List of parameter A coefficients
         :return: Figure of D vs A for a given number of iterations
@@ -436,14 +443,6 @@ class FilePlotting:
         for i in my_list:
             self.mean_square_displacement(rho, t, power, i)
             print("-----------------------------")
-
-        # File saving Dif coe
-        # np.savetxt("../../PlotAnalysis/Diffusion coefficients n=%d.txt"%power,dif_coef, fmt='%.5f')
-        # np.savetxt("../../PlotAnalysis/Reduced Diffusion coefficients n=%d.txt"%power,reduced_dif_coef, fmt='%.5f')
-        # np.savetxt("../../PlotAnalysis/dif error n=%d.txt"%power, dif_err, fmt='%.5f')
-        # np.savetxt("../../PlotAnalysis/reduced dif error n=%d.txt"%power, reduced_dif_err, fmt='%.5f')
-        # np.savetxt("../../PlotAnalysis/dif y int n=%d.txt"%power, dif_y_int, fmt='%.5f')
-        # np.savetxt("../../PlotAnalysis/reduced dif y hint n=%d.txt"%power, reduced_dif_y_int, fmt='%.5f')
         name = "n: " + str(power)
         steps = ['5k', '10k', '12.5k', '15k', '20k']
 
@@ -464,16 +463,16 @@ class FilePlotting:
 
     # No data plots
     def potential(self, power, par_a):
-        power_str = str(power)
+        self.n_str = str(power)
         A = str(float(par_a))
 
         x = np.linspace(0, 3, 150)  # TODO:  0.5
         V = 1 / pow((x ** 2 + par_a), power / 2)
         plt.figure('Potential')
-        # name = "n: " + power_str + " A: " + A
+        # name = "n: " + self.n_str + " A: " + A
         # plt.plot(x,V, label=name, linestyle='-', color=color_sequence[p])
 
-        name = "n: " + power_str
+        name = "n: " + self.n_str
         # name = "A: " + A
         if par_a <= 1.:
             iso = np.sqrt(1 - par_a)
@@ -498,7 +497,7 @@ class FilePlotting:
         self.line_it += 1
 
     def force(self, power, par_a):
-        power_str = str(power)
+        self.n_str = str(power)
         A = str(float(par_a))
 
         x = np.linspace(0.0, 3, 300)  # division with 0
@@ -522,9 +521,9 @@ class FilePlotting:
         self.line_it += 1
 
     def RDF2(self, power, par_a):
-        power_str = str(power)
+        self.n_str = str(power)
         A = str(float(par_a))
-        name = "n: " + power_str + " A: " + A
+        name = "n: " + self.n_str + " A: " + A
 
         x = np.linspace(0, 5, 300)
         G = np.exp(-1. / ((x ** 2 + par_a) ** (power / 2.0)) / 1.4)  # T_0 = 1.4 = thermostat temperature
@@ -539,7 +538,7 @@ class FilePlotting:
     def vel_dist(self, rho, t, power, par_a):
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "MSD" + file_id + ".txt"
-        name = "n: " + power_str + " A: " + A
+        name = "n: " + self.n_str + " A: " + self.a_str
         vx, vy, vz = np.loadtxt(data,
                                 usecols=(3, 4, 5),
                                 delimiter='\t',
@@ -574,7 +573,7 @@ class FilePlotting:
 
         plt.plot(lnspc, pdf_mb, label='Theory')
         plt.xlim(xmin=0)
-        plt.title(power_str + '~' + A)
+        plt.title(self.n_str + '~' + self.a_str)
         plt.legend(loc='best', fancybox=True)
 
     def savefig(self, figname):

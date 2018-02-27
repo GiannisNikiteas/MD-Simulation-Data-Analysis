@@ -10,9 +10,9 @@ def rdf(power, par_a):
     :param par_a: Parameter A, of the potential
     :return: numpy array that contains the RDF points
     """
-    power_str = str(int(power))
+    self.n_str = str(int(power))
     A = '{:.2f}'.format(par_a)
-    HIST = 'Hist' + power_str + '~' + A + '.txt'
+    HIST = 'Hist' + self.n_str + '~' + A + '.txt'
     num_lines = sum(1 for line in open(HIST))
     Hist = np.loadtxt(HIST, skiprows=1, delimiter='\n')
     Hist = np.delete(Hist, 99)
