@@ -1,12 +1,6 @@
 from PathHandling import *
 from plotting_class import *
-import path
 
-# TODO: Adjust RDF plotting method not start from 0. Start from next list entry since 0 is not measured
-# TODO: make methods in plotting class return strings with plotnames
-#       in order to save figures
-# TODO: Obvious CON when plotting multiple plots on the same figure
-# -> the final image will have the name of the last plot called (not much you can do about it
 os.chdir('../../Archives of Data/')
 obj = FilePlotting(10000, 1000)  # steps, particles
 
@@ -26,6 +20,7 @@ n_list = [6, 8, 10, 12]
 #                     rho  T   n   a
 obj.radial_dist_func(0.5, 0.5, 8, 0.5)
 obj.radial_dist_func(0.8409, 2, 8, 0.42045)
+o
 
 plt.tight_layout()
 plt.show()
