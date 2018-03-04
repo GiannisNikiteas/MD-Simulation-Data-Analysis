@@ -537,7 +537,7 @@ class FilePlotting:
 
     def vel_dist(self, rho, t, power, par_a):
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = "MSD" + file_id + ".txt"
+        data = "Positions_Velocities" + file_id + ".txt"
         name = "n: " + self.n_str + " A: " + self.a_str
         vx, vy, vz = np.loadtxt(data,
                                 usecols=(3, 4, 5),
@@ -545,12 +545,6 @@ class FilePlotting:
                                 comments='#',
                                 unpack=True)
         v = np.sqrt(np.square(vx) + np.square(vy) + np.square(vz))
-
-        # kb = 1.38064852 * 10**-23  # Boltzman constant
-        # T = 1.4  # Temperature
-        # m = 1  # mass
-        # norm = np.power((m/(2.*np.pi*kb*T)), 3./2.)   # normalised in C++ simulation
-        # v = np.multiply(v, 1./norm)
 
         # n, bins, patches = plt.hist(v, 100, normed=1, label=name)
         xmin, xmax = 0, max(v) + 1
@@ -566,10 +560,10 @@ class FilePlotting:
         vz_plot = plt.subplot2grid((2, 3), (0, 2), colspan=1)
         v_plot = plt.subplot2grid((2, 3), (1, 0), colspan=3)
 
-        n, bins, patches = vx_plot.hist(vx, 100, normed=1, label='vx')
-        n, bins, patches = vy_plot.hist(vy, 100, normed=1, label='vy')
-        n, bins, patches = vz_plot.hist(vz, 100, normed=1, label='vz')
-        n, bins, patches = v_plot.hist(v, 100, normed=1, label='v')
+        n, bins, patches = vx_plot.hist(vx, 150, normed=1, label='vx')
+        n, bins, patches = vy_plot.hist(vy, 150, normed=1, label='vy')
+        n, bins, patches = vz_plot.hist(vz, 150, normed=1, label='vz')
+        n, bins, patches = v_plot.hist(v, 150, normed=1, label='v')
 
         plt.plot(lnspc, pdf_mb, label='Theory')
         plt.xlim(xmin=0)
