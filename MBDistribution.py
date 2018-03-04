@@ -1,14 +1,8 @@
+import os
+import sys
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.special import erf
-
-
-RANGE_OF_SPEEDS_MONTE_CARLO = np.arange(0, 5, 0.001)
-K_BOLTZMANN = 1.
-TEMPERATURE = 1.4
-MASS = 1.
-NUMBER_OF_PARTICLES = 10**3
-NUMBER_OF_DIMENSIONS = 3
 
 
 def mb_speed_distribution():
@@ -66,28 +60,26 @@ class VelGen:
         return np.array([vx, vy], dtype=np.double)
 
 
-a = VelGen()
-a, b, c = a.get_velocities()
-np.savetxt('../MD simulation/MD simulation/vx.txt', a, delimiter='\n')
-np.savetxt('../MD simulation/MD simulation/vy.txt', b, delimiter='\n')
-np.savetxt('../MD simulation/MD simulation/vz.txt', c, delimiter='\n')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+if __name__ == '__main__':
+    RANGE_OF_SPEEDS_MONTE_CARLO = np.arange(0, 5, 0.001)
+    K_BOLTZMANN = 1.
+    MASS = 1.
+    NUMBER_OF_DIMENSIONS = 3
+    print(str(sys.argv))
+    try:
+        NUMBER_OF_PARTICLES = int(sys.argv[1])
+        TEMPERATURE = float(sys.argv[2])
+    except(len(sys.argv) == 3):
+        NUMBER_OF_PARTICLES = 10 ** 3
+        TEMPERATURE = 1.0
+        raise ValueError('Invalid number or type of arguments')
+    # TODO: Name creating function for files
+    os.chdir('C:/Users/gn/source/repos/MD-simulation/src')
+    a = VelGen()
+    a, b, c = a.get_velocities()
+    np.savetxt('vx.txt', a, delimiter='\n')
+    np.savetxt('vy.txt', b, delimiter='\n')
+    np.savetxt('vz.txt', c, delimiter='\n')
+else:
+    print("MD module loaded")
 
