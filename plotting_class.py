@@ -45,7 +45,7 @@ class FilePlotting:
         self.s = 0
         self.line_it = 0
 
-    def file_searcher(self, rho, t, n, a):
+    def file_searcher(self, rho, t, n, a=None):
         """
         Constructs the file signature of the MD simulation in order for the information to be read
         :param rho: density
@@ -58,10 +58,16 @@ class FilePlotting:
         self.rho_str = "{:.2f}".format(rho)
         self.t_str = "{:.2f}".format(t)
         self.n_str = str(n)
-        self.a_str = "{:.4f}".format(a)
+        alpha = None
+        if a is not None:
+            self.a_str = "{:.4f}".format(a)
+            alpha = '_A_' + self.a_str
+        else:
+            self.a_str = ""
+            alpha = self.a_str
 
         name_id = '_step_' + self.step_str + '_particles_' + p_str + '_rho_' + \
-                  self.rho_str + '_T_' + self.t_str + '_n_' + self.n_str + '_A_' + self.a_str
+                  self.rho_str + '_T_' + self.t_str + '_n_' + self.n_str + alpha
         return name_id
 
     def energy_plots(self, rho, t, power, par_a):
@@ -130,7 +136,8 @@ class FilePlotting:
         U = np.loadtxt(data, usecols=2, delimiter='\t', comments='#', unpack=True)
 
         #  Plots the Energies
-        name = 'n: ' + self.n_str + 'A: ' + self.a_str
+        name = "rho: " + self.rho_str + "T: " + \
+               self.t_str + "n: " + self.n_str + "A: " + self.a_str
         step = 0.005
         time = num_lines * step
         x = np.linspace(0, time, num_lines)
@@ -144,6 +151,8 @@ class FilePlotting:
 
         rx, ry, rz = np.loadtxt(data, usecols=(0, 1, 2), delimiter='\t',
                                 comments='#', unpack=True)
+        name = "rho: " + self.rho_str + "T: " + \
+               self.t_str + "n: " + self.n_str + "A: " + self.a_str
         fig = plt.figure('3D Scatter Plot')
         ax = fig.add_subplot(111, projection='3d')
         S = ax.scatter(rx, ry, rz, c=rz, cmap='gnuplot_r')
@@ -165,7 +174,8 @@ class FilePlotting:
         # erx = np.sqrt(vx**2+vz**2)
         # ery = np.sqrt(vy**3+vz**2)
         plt.figure('2D Vector Field of particles')
-        name = "n: " + self.n_str + "  A: " + self.a_str
+        name = "rho: " + self.rho_str + "T: " + \
+               self.t_str + "n: " + self.n_str + "A: " + self.a_str
         Q = plt.quiver(rx, ry, vx, vy, rz, pivot='mid', cmap='gnuplot_r', alpha=0.75, label=name)
         # plt.scatter(rx, ry, alpha=0.4, label=name)
         plt.colorbar(Q)
@@ -183,7 +193,8 @@ class FilePlotting:
         fig = plt.figure('3D Vector Field of particles')
         ax = fig.gca(projection='3d')
         # v = np.sqrt(vx**2 + vy**2 + vz**2)
-        name = "n: " + self.n_str + "  A: " + self.a_str
+        name = "rho: " + self.rho_str + "T: " + \
+               self.t_str + "n: " + self.n_str + "A: " + self.a_str
         Q = plt.quiver(rx, ry, rz, vx, vy, vz, rz,
                        label=name, alpha=0.7, normalize=True,
                        cmap='gnuplot_r')
@@ -201,22 +212,24 @@ class FilePlotting:
         print(num_lines)
         # print(Hist.size)
 
-        N, rho, Nhist = 10 ** 3, 0.5, 300
-        rg = ((N / rho) ** (1. / 3.)) / 2.
+        N, Nhist = 10 ** 3, 300
+        rg = 3.0   # ((N / rho) ** (1. / 3.)) / 2.
         dr = rg / Nhist
 
         x = np.linspace(1, num_lines-1, num_lines)
         pwr = float(power)
-        force_max = (par_a
-                     / (1. + pwr)) ** (0.5)
+        force_max = (par_a / (1. + pwr)) ** 0.5
         x = np.multiply(x, dr)
         x = np.multiply(x, 1)
-        name = "n: " + self.n_str + "  A: " + self.a_str
+        name = "rho: " + self.rho_str + " T: " + \
+               self.t_str + " n: " + self.n_str + " A: " + self.a_str
         max_scaling = np.max(rdf)  # Scaling the ymax
-        iso = np.sqrt(1 - par_a)
+        iso = np.sqrt(1 - par_a ** 2)
+        # a_tilda = par_a * rho ** (1./3.)
+        # iso = np.sqrt(rho ** (2./3) - a_tilda **2)
 
         plt.figure('Radial Distribution Function')
-        plt.plot(x, rdf, '-', markersize=4, label=name, color=self.color_sequence2[self.c])
+        plt.plot(x, rdf, '-o', markersize=4, label=name, color=self.color_sequence2[self.c])
 
         # Plot adjustments
         plt.xlabel(r"$r$", fontsize=16)
@@ -240,7 +253,8 @@ class FilePlotting:
         xxx = np.linspace(0, time, num=num_lines)
         name = ""
         if num_lines < 110000:
-            name = "n: " + self.n_str + "  A: " + self.a_str
+            name = "rho: " + self.rho_str + "T: " + \
+                   self.t_str + "n: " + self.n_str + "A: " + self.a_str
 
         plt.figure('Velocity Autocorrelation Function')
         y = np.full(num_lines, 0)
@@ -290,7 +304,8 @@ class FilePlotting:
               'R value: ', r_value, '\n',
               'Fit Error: ', std_err)
 
-        name = "n: " + self.n_str + "  A: " + self.a_str
+        name = "rho: " + self.rho_str + "T: " + \
+               self.t_str + "n: " + self.n_str + "A: " + self.a_str
         plt.figure('Mean Square Displacement')
         plt.plot(x, MSD, label=name)  # , color=color_sequence[p])
         plt.xlabel(r"$t$", fontsize=16)
@@ -316,7 +331,8 @@ class FilePlotting:
         time = num_lines * 0.005
         xxx = np.linspace(0, time, num=num_lines)
 
-        name = "n: " + self.n_str + "  A: " + self.a_str
+        name = "rho: " + self.rho_str + "T: " + \
+               self.t_str + "n: " + self.n_str + "A: " + self.a_str
         plt.figure('Configurational Pressure')
 
         plt.plot(xxx, cr, label=name)  # color=color_sequence[p])
@@ -331,30 +347,26 @@ class FilePlotting:
     # Averages
     # TODO: Look how AVG files are named and fix
     # TODO: Probably these methods will not be static after fixing
-    @staticmethod
-    def avg_pressure(power):
-        n_str = str(power)
+    def avg_pressure(self, rho, t, power):
+        file_id = self.file_searcher(rho, t, power)
+        Pc = "AVGdata" + file_id + ".txt"
+        name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
 
-        PC = "AVGdata" + n_str + ".txt"
-        name = "n: " + n_str
-
-        num_lines = sum(1 for line in open(PC))
-        a, Pc = np.loadtxt(PC, delimiter='\t', comments='#', usecols=(0, 5), unpack=True)
+        num_lines = sum(1 for line in open(Pc))
+        a, pc = np.loadtxt(Pc, delimiter='\t', comments='#', usecols=(0, 5), unpack=True)
 
         plt.figure('Average Pressure')
-        plt.plot(a, Pc, '-o', label=name, markersize=3)
+        plt.plot(a, pc, '-o', label=name, markersize=3)
         plt.xlim(xmin=0, xmax=4.0)
         # plt.title("Configurational Pressure for multiple Potentials")
         plt.xlabel(r"$A$", size=16)
         plt.ylabel(r"$P_c$", size=16)
         plt.legend(loc="best")
 
-    @staticmethod
-    def avg_Kin(power):
-        n_str = str(power)
-
-        K = "AVGdata" + n_str + ".txt"
-        name = "n: " + n_str
+    def avg_Kin(self, rho, t, power):
+        file_id = self.file_searcher(rho, t, power)
+        K = "AVGdata" + file_id + ".txt"
+        name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
 
         a, k = np.loadtxt(K, delimiter='\t', comments='#', usecols=(0, 2), unpack=True)
 
@@ -365,14 +377,12 @@ class FilePlotting:
         plt.ylabel(r"Kinetic Energy $K$")
         plt.legend(loc="best")
 
-    @staticmethod
-    def avg_Pot(power):
-        n_str = str(power)
+    def avg_Pot(self, rho, t, power):
+        file_id = self.file_searcher(rho, t, power)
+        u = "AVGdata" + file_id + ".txt"
+        name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
 
-        K = "AVGdata" + n_str + ".txt"
-        name = "n: " + n_str
-
-        a, k = np.loadtxt(K, delimiter='\t', comments='#', usecols=(0, 3), unpack=True)
+        a, k = np.loadtxt(u, delimiter='\t', comments='#', usecols=(0, 3), unpack=True)
 
         plt.figure('Average Potential Energy')
         plt.plot(a, k, label=name)
@@ -381,13 +391,10 @@ class FilePlotting:
         plt.ylabel(r"Potential Energy $U$")
         plt.legend(loc="best")
 
-    @staticmethod
-    def avg_en(power):
-        # Changes the directory
-        n_str = str(power)
-
-        E = "AVGdata" + n_str + ".txt"
-        name = "n: " + n_str
+    def avg_en(self, rho, t, power):
+        file_id = self.file_searcher(rho, t, power)
+        E = "AVGdata" + file_id + ".txt"
+        name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
 
         num_lines = sum(1 for line in open(E))
 
@@ -467,7 +474,7 @@ class FilePlotting:
         A = str(float(par_a))
 
         x = np.linspace(0, 3, 150)  # TODO:  0.5
-        V = 1 / pow((x ** 2 + par_a), power / 2)
+        V = 1 / pow((x ** 2 + par_a ** 2), power / 2)
         plt.figure('Potential')
         # name = "n: " + self.n_str + " A: " + A
         # plt.plot(x,V, label=name, linestyle='-', color=color_sequence[p])
@@ -475,10 +482,10 @@ class FilePlotting:
         name = "n: " + self.n_str
         # name = "A: " + A
         if par_a <= 1.:
-            iso = np.sqrt(1 - par_a)
+            iso = np.sqrt(1 - par_a ** 2)
             sak = 1 / pow((iso ** 2 + par_a), power / 2)
 
-            plt.scatter(iso, sak, marker='o', color='magenta', label= 'Isosbestic point')
+            plt.scatter(iso, sak, marker='o', color='magenta', label='Isosbestic point')
         plt.plot(x, V, label=name, linestyle=self.line_style[self.line_it], color='black')
         plt.xlim(xmin=x[0], xmax=2)
         plt.ylim(ymin=0)

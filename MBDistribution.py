@@ -67,19 +67,21 @@ if __name__ == '__main__':
     NUMBER_OF_DIMENSIONS = 3
     print(str(sys.argv))
     try:
-        NUMBER_OF_PARTICLES = int(sys.argv[1])
-        TEMPERATURE = float(sys.argv[2])
-    except(len(sys.argv) == 3):
+        if len(sys.argv) != 3:
+            NUMBER_OF_PARTICLES = 10 ** 3
+            TEMPERATURE = 1.0
+            raise ValueError('Invalid number or type of arguments\nArguments initialised with default values')
+        NUMBER_OF_PARTICLES = int(sys.argv[1])  # 1st argument
+        TEMPERATURE = float(sys.argv[2])        # 2nd argument
+    except ValueError:
         NUMBER_OF_PARTICLES = 10 ** 3
         TEMPERATURE = 1.0
-        raise ValueError('Invalid number or type of arguments')
-    # TODO: Name creating function for files
-    os.chdir('C:/Users/gn/source/repos/MD-simulation/src')
+    file_id = 'particles_' + str(NUMBER_OF_PARTICLES) + '_T_' + "{:.2f}".format(TEMPERATURE)
+    os.chdir('C:/Users/gn/source/repos/MD-simulation/')
     a = VelGen()
     a, b, c = a.get_velocities()
-    np.savetxt('vx.txt', a, delimiter='\n')
-    np.savetxt('vy.txt', b, delimiter='\n')
-    np.savetxt('vz.txt', c, delimiter='\n')
+    np.savetxt(file_id + 'vx.txt', a, delimiter='\n')
+    np.savetxt(file_id + 'vy.txt', b, delimiter='\n')
+    np.savetxt(file_id + 'vz.txt', c, delimiter='\n')
 else:
     print("MD module loaded")
-
