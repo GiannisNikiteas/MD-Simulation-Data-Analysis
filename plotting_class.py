@@ -225,11 +225,11 @@ class FilePlotting:
                self.t_str + " n: " + self.n_str + " A: " + self.a_str
         max_scaling = np.max(rdf)  # Scaling the ymax
         iso = np.sqrt(1 - par_a ** 2)
-        # a_tilda = par_a * rho ** (1./3.)
-        # iso = np.sqrt(rho ** (2./3) - a_tilda **2)
+        a_tilda = par_a * rho ** (1./3.)
+        iso = np.sqrt(rho ** (2./3) - a_tilda **2)
 
         plt.figure('Radial Distribution Function')
-        plt.plot(x, rdf, '-o', markersize=4, label=name, color=self.color_sequence2[self.c])
+        plt.plot(x, rdf, '-', markersize=4, label=name, color=self.color_sequence2[self.c])
 
         # Plot adjustments
         plt.xlabel(r"$r$", fontsize=16)
