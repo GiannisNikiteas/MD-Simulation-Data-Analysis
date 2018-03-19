@@ -55,12 +55,12 @@ class FilePlotting:
         :return: string with file identifier
         """
         p_str = self.particles_str
-        self.rho_str = "{:.2f}".format(rho)
-        self.t_str = "{:.2f}".format(t)
+        self.rho_str = "{:.4f}".format(rho)
+        self.t_str = "{:.4f}".format(t)
         self.n_str = str(n)
         alpha = None
         if a is not None:
-            self.a_str = "{:.4f}".format(a)
+            self.a_str = "{:.5f}".format(a)
             alpha = '_A_' + self.a_str
         else:
             self.a_str = ""
@@ -225,11 +225,12 @@ class FilePlotting:
                self.t_str + " n: " + self.n_str + " A: " + self.a_str
         max_scaling = np.max(rdf)  # Scaling the ymax
         iso = np.sqrt(1 - par_a ** 2)
-        a_tilda = par_a * rho ** (1./3.)
-        iso = np.sqrt(rho ** (2./3) - a_tilda **2)
+        a_tilde = par_a * rho ** (1./3.)    # Scale a
+        x_tilde = np.multiply(x, rho ** (1. / 3.))  # Scale r
+        iso = np.sqrt(rho ** (2./3) - a_tilde ** 2)
 
         plt.figure('Radial Distribution Function')
-        plt.plot(x, rdf, '-', markersize=4, label=name, color=self.color_sequence2[self.c])
+        plt.plot(x_tilde, rdf, '-', markersize=4, label=name, color=self.color_sequence2[self.c])
 
         # Plot adjustments
         plt.xlabel(r"$r$", fontsize=16)
