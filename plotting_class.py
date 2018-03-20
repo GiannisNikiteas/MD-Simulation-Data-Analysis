@@ -202,49 +202,47 @@ class FilePlotting:
         plt.legend(loc="best")
 
     # RDF Histogram
-    def radial_dist_func(self, rho, t, power, par_a):
+    def rdf(self, rho, t, power, par_a, show_iso=False):
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Hist" + file_id + ".txt"
         num_lines = sum(1 for line in open(data))  # yields size=101, index=100
         rdf = np.loadtxt(data, delimiter="\n")
-        # gr is supposed to have 101 entries since the boundaries are 0 and cut_off
-        # and both of them are inclusive
         print(num_lines)
-        # print(Hist.size)
 
+        # Number of particles, Number of bins
         N, Nhist = 10 ** 3, 300
         rg = 3.0   # ((N / rho) ** (1. / 3.)) / 2.
         dr = rg / Nhist
 
         x = np.linspace(1, num_lines-1, num_lines)
-        pwr = float(power)
-        force_max = (par_a / (1. + pwr)) ** 0.5
         x = np.multiply(x, dr)
-        x = np.multiply(x, 1)
-        name = "rho: " + self.rho_str + " T: " + \
-               self.t_str + " n: " + self.n_str + " A: " + self.a_str
-        max_scaling = np.max(rdf)  # Scaling the ymax
-        iso = np.sqrt(1 - par_a ** 2)
         a_tilde = par_a * rho ** (1./3.)    # Scale a
         x_tilde = np.multiply(x, rho ** (1. / 3.))  # Scale r
-        iso = np.sqrt(rho ** (2./3) - a_tilde ** 2)
 
+        name = "rho: " + self.rho_str + " T: " + \
+               self.t_str + " n: " + self.n_str + " A: " + self.a_str
         plt.figure('Radial Distribution Function')
-        plt.plot(x_tilde, rdf, '-', markersize=4, label=name, color=self.color_sequence2[self.c])
+        plt.plot(x_tilde, rdf, '-', markersize=4, label=name)  # , color=self.color_sequence2[self.c])
 
-        # Plot adjustments
+        # Plot labels
         plt.xlabel(r"$r$", fontsize=16)
         plt.ylabel(r"$g(r)$", fontsize=16)
+        # Plotting isosbestic location of points
+        max_scaling = np.max(rdf)  # Scaling the ymax
+        if show_iso is True:    # Show isosbestic point
+            iso = np.sqrt(1 - par_a ** 2)
+            iso = np.sqrt(rho ** (2./3) - a_tilde ** 2)
+            plt.plot([iso, iso], [0, max_scaling + 0.1], '--', color='red')
+        # Line through y = 1
         plt.plot([0, x[-1]], [1, 1], '--', color='black', linewidth=0.5)
-        plt.plot([iso, iso], [0, max_scaling + 0.1], '--', color='red')
+        # Plot limits and legends
         plt.xlim(xmin=0, xmax=2.5)
         plt.ylim(ymin=0, ymax=max_scaling + 0.1)
         plt.legend(loc="best", fancybox=True)
         self.c += 1
-        self.line_it += 1
 
     # VAF
-    def velocity_autocorrelation_func(self, rho, t, power, par_a):
+    def vaf(self, rho, t, power, par_a):
         file_id = self.file_searcher(rho, t, power, par_a)
         vaf = "VAF" + file_id + ".txt"
 
@@ -264,7 +262,6 @@ class FilePlotting:
         plt.plot(xx, yy, '--', color='black')
         plt.plot(xxx, y, '--', color='black')
         plt.plot(xxx, cr, label=name)  # ,color=color_sequence2[p])
-        # plt.title("Velocity Autocorrelation Functions (VAF) ")
         plt.xlabel(r"Time $t$", fontsize=18)
         plt.ylabel(r"$C_v$", fontsize=18)
         plt.ylim(ymax=5, ymin=-0.5)
@@ -274,13 +271,13 @@ class FilePlotting:
         self.p += 1
 
     # MSD
-    def mean_square_displacement(self, rho, t, power, par_a):
+    def msd(self, rho, t, power, par_a):
         file_id = self.file_searcher(rho, t, power, par_a)
-        msd = "MSD" + file_id + ".txt"
+        _msd = "MSD" + file_id + ".txt"
 
-        MSD = np.loadtxt(msd, delimiter='\n')
+        MSD = np.loadtxt(_msd, delimiter='\n')
 
-        num_lines = sum(1 for line in open(msd))
+        num_lines = sum(1 for line in open(_msd))
         limit = 0.005 * num_lines
         step = int(0.6 * num_lines)
         x = np.linspace(0, limit, num=num_lines)
@@ -339,8 +336,6 @@ class FilePlotting:
         plt.plot(xxx, cr, label=name)  # color=color_sequence[p])
         plt.xlabel(r"Time $t$", size=18)
         plt.ylabel(r"Configurational Pressure $P_C$", size=18)
-        # plt.ylim(0,0.1)
-        # plt.title("Pressure of Liquid against time", size=17)
         plt.legend(loc="best", prop={'size': 12},
                    borderpad=0.2, labelspacing=0.2, handlelength=1)
         self.p += 1
@@ -415,10 +410,6 @@ class FilePlotting:
         TOT.locator_params(axis='y', nbins=3), TOT.locator_params(axis='x', nbins=4)
         TOT.set_xlabel(r"Parameter $A$")
 
-        # k, u, t = K[4], U[4], T[4]
-        # Kin.text(a[4], k*1.01, 'Average Kinetic Energy', fontsize=12)
-        # Pot.text(a[4], u*0.95, 'Average Potential Energy', fontsize=12)
-        # TOT.text(a[4], t, 'Average Total Energy', fontsize=12)
         Kin.set_title('Individual Plots for n = %d' % power, fontsize=14)
         All.set_title('Total Energy, Kinetic and Potential')
         All.set_xlabel(r"Parameter $A$")
@@ -443,13 +434,9 @@ class FilePlotting:
         :param my_list: List of parameter A coefficients
         :return: Figure of D vs A for a given number of iterations
         """
-        #   List example:
-        # my_list = [0, 0.25, 0.50, 0.65, 0.7, 0.75, 0.8, 0.85,
-        #  0.90, 1.00, 1.1, 1.2, 1.25, 1.50, 1.75, 2.00, 2.25, 2.50,
-        #            2.75, 4.00]
 
         for i in my_list:
-            self.mean_square_displacement(rho, t, power, i)
+            self.msd(rho, t, power, i)
             print("-----------------------------")
         name = "n: " + str(power)
         steps = ['5k', '10k', '12.5k', '15k', '20k']
@@ -578,7 +565,8 @@ class FilePlotting:
         plt.title(self.n_str + '~' + self.a_str)
         plt.legend(loc='best', fancybox=True)
 
-    def savefig(self, figname):
+    @staticmethod
+    def savefig(figname):
         return plt.savefig(figname, bbox_inches='tight', pad_inches=0)
 
 
