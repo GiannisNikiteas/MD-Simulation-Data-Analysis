@@ -202,7 +202,7 @@ class FilePlotting:
         plt.legend(loc="best")
 
     # RDF Histogram
-    def rdf(self, rho, t, power, par_a, show_iso=False):
+    def rdf(self, rho, t, power, par_a, iso_scale=True, show_iso=False):
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Hist" + file_id + ".txt"
         num_lines = sum(1 for line in open(data))  # yields size=101, index=100
@@ -214,15 +214,17 @@ class FilePlotting:
         rg = 3.0   # ((N / rho) ** (1. / 3.)) / 2.
         dr = rg / Nhist
 
-        x = np.linspace(1, num_lines-1, num_lines)
-        x = np.multiply(x, dr)
+        r = np.linspace(1, num_lines-1, num_lines)
+        r = np.multiply(r, dr)
         a_tilde = par_a * rho ** (1./3.)    # Scale a
-        x_tilde = np.multiply(x, rho ** (1. / 3.))  # Scale r
+        # Isomorphic scaling of r
+        if iso_scale is True:
+            r_tilde = np.multiply(r, rho ** (1. / 3.))  # Scale r
 
         name = "rho: " + self.rho_str + " T: " + \
                self.t_str + " n: " + self.n_str + " A: " + self.a_str
         plt.figure('Radial Distribution Function')
-        plt.plot(x_tilde, rdf, '-', markersize=4, label=name)  # , color=self.color_sequence2[self.c])
+        plt.plot(r_tilde, rdf, '-', markersize=4, label=name)  # , color=self.color_sequence2[self.c])
 
         # Plot labels
         plt.xlabel(r"$r$", fontsize=16)
@@ -234,7 +236,7 @@ class FilePlotting:
             iso = np.sqrt(rho ** (2./3) - a_tilde ** 2)
             plt.plot([iso, iso], [0, max_scaling + 0.1], '--', color='red')
         # Line through y = 1
-        plt.plot([0, x[-1]], [1, 1], '--', color='black', linewidth=0.5)
+        plt.plot([0, r[-1]], [1, 1], '--', color='black', linewidth=0.5)
         # Plot limits and legends
         plt.xlim(xmin=0, xmax=2.5)
         plt.ylim(ymin=0, ymax=max_scaling + 0.1)
@@ -248,10 +250,10 @@ class FilePlotting:
 
         cr = np.loadtxt(vaf, delimiter='\n')
         num_lines = sum(1 for line in open(vaf))
-        time = 0.005 * num_lines
+        time = 0.005 * num_lines    # TODO: Adjust time step
         xxx = np.linspace(0, time, num=num_lines)
         name = ""
-        if num_lines < 110000:
+        if num_lines < 100000:
             name = "rho: " + self.rho_str + "T: " + \
                    self.t_str + "n: " + self.n_str + "A: " + self.a_str
 
@@ -457,7 +459,7 @@ class FilePlotting:
         self.v += 1
 
     # No data plots
-    def potential(self, power, par_a):
+    def potential(self, power, par_a, show_inf_p=False):
         self.n_str = str(power)
         A = str(float(par_a))
 
@@ -469,11 +471,11 @@ class FilePlotting:
 
         name = "n: " + self.n_str
         # name = "A: " + A
-        if par_a <= 1.:
+        if par_a <= 1. and self.p == 0:
             iso = np.sqrt(1 - par_a ** 2)
-            sak = 1 / pow((iso ** 2 + par_a), power / 2)
-
+            sak = 1 / pow((iso ** 2 + par_a ** 2), power / 2.0)
             plt.scatter(iso, sak, marker='o', color='magenta', label='Isosbestic point')
+
         plt.plot(x, V, label=name, linestyle=self.line_style[self.line_it], color='black')
         plt.xlim(xmin=x[0], xmax=2)
         plt.ylim(ymin=0)
@@ -482,14 +484,27 @@ class FilePlotting:
         plt.ylabel(r"$\Phi$", size=16)
         lgnd = plt.legend(loc="best", fancybox=True, ncol=1)
         f, v = [], []
-        temp = np.sqrt(par_a / (1. + power))
-        f.append(temp)
-        temp = 1 / pow((temp ** 2 + par_a), power / 2.)
-        v.append(temp)
-        plt.scatter(f, v, color='red', marker='o', s=13, label='Inflection point')
-        plt.locator_params(axis='x', nbins=5)
+        if show_inf_p is True:
+            temp = np.sqrt(par_a / (1. + power))
+            f.append(temp)
+            temp = 1 / pow((temp ** 2 + par_a), power / 2.)
+            v.append(temp)
+            plt.scatter(f, v, color='red', marker='o', s=13, label='Inflection point')
+            plt.locator_params(axis='x', nbins=5)
         self.p += 1
         self.line_it += 1
+
+    def scaled_potential(self, rho, power, par_a):
+        self.n_str = str(power)
+        A = str(float(par_a))
+
+        r = np.linspace(0, 3, 150)  # TODO:  0.5
+        a_tilde = par_a * rho ** (1./3.)    # Scale a
+        r_tilde = np.multiply(r, rho ** (1./3.))  # Scale r
+
+        phi = rho ** (power/3.) * (1 / pow((r_tilde ** 2 + a_tilde ** 2), power/2.))
+        plt.figure('Scaled Potential')
+        plt.plot(r_tilde, phi, )
 
     def force(self, power, par_a):
         self.n_str = str(power)
