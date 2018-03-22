@@ -219,12 +219,12 @@ class FilePlotting:
         a_tilde = par_a * rho ** (1./3.)    # Scale a
         # Isomorphic scaling of r
         if iso_scale is True:
-            r_tilde = np.multiply(r, rho ** (1. / 3.))  # Scale r
+            r = np.multiply(r, rho ** (1. / 3.))  # Scale r
 
         name = "rho: " + self.rho_str + " T: " + \
                self.t_str + " n: " + self.n_str + " A: " + self.a_str
         plt.figure('Radial Distribution Function')
-        plt.plot(r_tilde, rdf, '-', markersize=4, label=name)  # , color=self.color_sequence2[self.c])
+        plt.plot(r, rdf, '-', markersize=4, label=name)  # , color=self.color_sequence2[self.c])
 
         # Plot labels
         plt.xlabel(r"$r$", fontsize=16)
@@ -479,7 +479,7 @@ class FilePlotting:
             sak = 1 / pow((iso ** 2 + par_a ** 2), power / 2.0)
             plt.scatter(iso, sak, marker='o', color='magenta', label='Isosbestic point')
 
-        plt.plot(x, V, label=name, linestyle=self.line_style[self.line_it], color='black')
+        plt.plot(x, V, label=name)#, linestyle=self.line_style[self.line_it], color='black')
         plt.xlim(xmin=x[0], xmax=2)
         plt.ylim(ymin=0)
 
