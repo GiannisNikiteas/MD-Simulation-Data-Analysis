@@ -250,8 +250,10 @@ class FilePlotting:
 
         cr = np.loadtxt(vaf, delimiter='\n')
         num_lines = sum(1 for line in open(vaf))
-        time = 0.005 * num_lines    # TODO: Adjust time step
-        xxx = np.linspace(0, time, num=num_lines)
+        time_step = 0.005 / np.sqrt(t)
+        time = time_step * num_lines
+        x = np.linspace(0, time, num=num_lines)
+        t_tilde = x * rho ** (1./3.) * t ** 0.5
         name = ""
         if num_lines < 100000:
             name = "rho: " + self.rho_str + "T: " + \
@@ -261,15 +263,16 @@ class FilePlotting:
         y = np.full(num_lines, 0)
         xx = np.full(num_lines, time)
         yy = np.linspace(5, -0.5, num_lines)
-        plt.plot(xx, yy, '--', color='black')
-        plt.plot(xxx, y, '--', color='black')
-        plt.plot(xxx, cr, label=name)  # ,color=color_sequence2[p])
-        plt.xlabel(r"Time $t$", fontsize=18)
-        plt.ylabel(r"$C_v$", fontsize=18)
+        # plt.plot(xx, yy, '--', color='black')
+        plt.plot(t_tilde, y, '--', color='black')
+        plt.plot(t_tilde, cr, label=name)  # ,color=color_sequence2[p])
+        plt.xlabel(r"Time $t$", fontsize=16)
+        plt.ylabel(r"$C_v$", fontsize=16)
         plt.ylim(ymax=5, ymin=-0.5)
+        plt.xlim(xmin=t_tilde[0], xmax=t_tilde[-1])
         plt.legend(loc="best", ncol=1, borderpad=0.1,
                    labelspacing=0.01, columnspacing=0.01, fancybox=True,
-                   fontsize=16)
+                   fontsize=12)
         self.p += 1
 
     # MSD
