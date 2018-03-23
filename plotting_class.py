@@ -3,7 +3,14 @@ import scipy.stats as stats
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-# Look for improvements
+# Colors used for plots
+color_sequence = ['#1f77b4', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c',
+                    '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5',
+                    '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f',
+                    '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5']
+color_sequence2 = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#ff9896', '#9467bd', '#c5b0d5',
+                    '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f',
+                    '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5']
 
 
 class FilePlotting:
@@ -20,7 +27,6 @@ class FilePlotting:
         self.t_str = None
         self.n_str = None
         self.a_str = None
-        self.sep = "_"
         self.dif_coef = np.array([])
         self.reduced_dif_coef = np.array([])
         self.dif_err = np.array([])
@@ -29,21 +35,11 @@ class FilePlotting:
         self.reduced_dif_y_int = np.array([])
         self.line_style = ['solid', 'dashed', 'dotted', 'dashdot']
 
-        # Colors used for plots
-        self.color_sequence = ['#1f77b4', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c',
-                               '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5',
-                               '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f',
-                               '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5']
-        self.color_sequence2 = ['#1f77b4', '#ff7f0e', '#2ca02c',
-                                '#d62728', '#ff9896', '#9467bd', '#c5b0d5',
-                                '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f',
-                                '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5']
         # This is an iterator for the color array
         self.p, self.c = 0, 0
-        self.j = 0
-        self.v = 0
-        self.s = 0
-        self.line_it = 0
+        self.j = 0  # stride for MSD
+        self.v = 0  # index for MSD
+        self.line_it = 0    # Index iterator for line styles
 
     def file_searcher(self, rho, t, n, a=None):
         """
@@ -59,6 +55,7 @@ class FilePlotting:
         self.t_str = "{:.4f}".format(t)
         self.n_str = str(n)
         alpha = None
+
         if a is not None:
             self.a_str = "{:.5f}".format(a)
             alpha = '_A_' + self.a_str
@@ -74,16 +71,14 @@ class FilePlotting:
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Data" + file_id + ".txt"
 
-        #  Loads the files from the dir
-        # num_lines = sum(1 for line in open(Data))  # Calculates the num of lines in a file
         num_lines = 0
+        # Measuring the line number in a file ignoring comments
         for line in open(data):
             if line.startswith('#'):
                 continue
             num_lines += 1
 
-        KE, U, Tot = np.loadtxt(data, usecols=(1, 2, 3), delimiter='\t',
-                                comments='#', unpack=True)
+        KE, U, Tot = np.loadtxt(data, usecols=(1, 2, 3), delimiter='\t', comments='#', unpack=True)
 
         #  Plots the Energies
         step = 0.005
@@ -115,6 +110,7 @@ class FilePlotting:
         TOT.set_xlabel(r"Time $t$", fontsize=16)
         fig.subplots_adjust(hspace=0)
 
+        # Tick correction
         for ax in [Kin, Pot]:
             plt.setp(ax.get_xticklabels(), visible=False)
             # The y-ticks will overlap with "hspace=0", so we'll hide the bottom tick
@@ -168,11 +164,6 @@ class FilePlotting:
                                             comments='#',
                                             unpack=True)
 
-        # num_lines = sum(1 for line in open(RX))  # Calculates the num of lines in a file
-        # d = np.linspace(0,num_lines,num_lines)
-        # plt.plot(d,vz)
-        # erx = np.sqrt(vx**2+vz**2)
-        # ery = np.sqrt(vy**3+vz**2)
         plt.figure('2D Vector Field of particles')
         name = "rho: " + self.rho_str + "T: " + \
                self.t_str + "n: " + self.n_str + "A: " + self.a_str
@@ -205,36 +196,42 @@ class FilePlotting:
     def rdf(self, rho, t, power, par_a, iso_scale=True, show_iso=False):
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Hist" + file_id + ".txt"
-        num_lines = sum(1 for line in open(data))  # yields size=101, index=100
+        num_lines = sum(1 for line in open(data))
         rdf = np.loadtxt(data, delimiter="\n")
         print(num_lines)
 
         # Number of particles, Number of bins
         N, Nhist = 10 ** 3, 300
+        # Cut off radius
         rg = 3.0   # ((N / rho) ** (1. / 3.)) / 2.
         dr = rg / Nhist
 
+        # r range, r=0 is intentionally neglected due to division by 0
         r = np.linspace(1, num_lines-1, num_lines)
         r = np.multiply(r, dr)
         a_tilde = par_a * rho ** (1./3.)    # Scale a
-        # Isomorphic scaling of r
+
+        # Isomorphic scaling of r for the isomorph plane
         if iso_scale is True:
             r = np.multiply(r, rho ** (1. / 3.))  # Scale r
 
-        name = "rho: " + self.rho_str + " T: " + \
-               self.t_str + " n: " + self.n_str + " A: " + self.a_str
         plt.figure('Radial Distribution Function')
-        plt.plot(r, rdf, '-', markersize=4, label=name)  # , color=self.color_sequence2[self.c])
+
+        # Plotting isosbestic point
+        max_scaling = np.max(rdf)  # Scaling the ymax
+        if show_iso is True:    # Show isosbestic point
+            iso = np.sqrt(1 - par_a ** 2)
+            # iso = np.sqrt(rho ** (2./3) - a_tilde ** 2)   # This is probably wrong
+            plt.plot([iso, iso], [0, max_scaling + 0.1], '--', color='red')
+
+        name = "rho: " + self.rho_str + " T: " + self.t_str + " n: " + self.n_str + " A: " + self.a_str
+        plt.plot(r, rdf, '-', markersize=4, label=name)
 
         # Plot labels
         plt.xlabel(r"$r$", fontsize=16)
         plt.ylabel(r"$g(r)$", fontsize=16)
         # Plotting isosbestic location of points
-        max_scaling = np.max(rdf)  # Scaling the ymax
-        if show_iso is True:    # Show isosbestic point
-            iso = np.sqrt(1 - par_a ** 2)
-            iso = np.sqrt(rho ** (2./3) - a_tilde ** 2)
-            plt.plot([iso, iso], [0, max_scaling + 0.1], '--', color='red')
+
         # Line through y = 1
         plt.plot([0, r[-1]], [1, 1], '--', color='black', linewidth=0.5)
         # Plot limits and legends
@@ -265,7 +262,7 @@ class FilePlotting:
         yy = np.linspace(5, -0.5, num_lines)
         # plt.plot(xx, yy, '--', color='black')
         plt.plot(t_tilde, y, '--', color='black')
-        plt.plot(t_tilde, cr, label=name)  # ,color=color_sequence2[p])
+        plt.plot(t_tilde, cr, label=name)
         plt.xlabel(r"Time $t$", fontsize=16)
         plt.ylabel(r"$C_v$", fontsize=16)
         plt.ylim(ymax=5, ymin=-0.5)
@@ -273,7 +270,6 @@ class FilePlotting:
         plt.legend(loc="best", ncol=1, borderpad=0.1,
                    labelspacing=0.01, columnspacing=0.01, fancybox=True,
                    fontsize=12)
-        self.p += 1
 
     # MSD
     def msd(self, rho, t, power, par_a):
@@ -310,13 +306,12 @@ class FilePlotting:
         name = "rho: " + self.rho_str + "T: " + \
                self.t_str + "n: " + self.n_str + "A: " + self.a_str
         plt.figure('Mean Square Displacement')
-        plt.plot(x, MSD, label=name)  # , color=color_sequence[p])
+        plt.plot(x, MSD, label=name)
         plt.xlabel(r"$t$", fontsize=16)
         plt.ylabel(r"$MSD$", fontsize=16)
         plt.xlim(xmin=0, xmax=x[num_lines - 1])
         plt.ylim(ymin=0, ymax=MSD[num_lines - 1])
         plt.legend(loc="best", fancybox=True)
-        self.p += 1
 
     # Pressure C
     def pc(self, rho, t, power, par_a):
@@ -338,12 +333,11 @@ class FilePlotting:
                self.t_str + "n: " + self.n_str + "A: " + self.a_str
         plt.figure('Configurational Pressure')
 
-        plt.plot(xxx, cr, label=name)  # color=color_sequence[p])
+        plt.plot(xxx, cr, label=name)
         plt.xlabel(r"Time $t$", size=18)
         plt.ylabel(r"Configurational Pressure $P_C$", size=18)
         plt.legend(loc="best", prop={'size': 12},
                    borderpad=0.2, labelspacing=0.2, handlelength=1)
-        self.p += 1
 
     # Averages
     # TODO: Look how AVG files are named and fix
@@ -447,17 +441,15 @@ class FilePlotting:
         steps = ['5k', '10k', '12.5k', '15k', '20k']
 
         plt.figure('Diffusion coefficients D vs A')
-        plt.plot(my_list, self.dif_coef, '--o', label=name)  # color=color_sequence[v])
+        plt.plot(my_list, self.dif_coef, '--o', label=name)
         plt.xlabel(r"$A$", fontsize=16)
         plt.ylabel(r"$D$", fontsize=16)
-        plt.legend(loc="best", fancybox=True, ncol=2,
-                   labelspacing=0.05, handletextpad=0.5, fontsize=16)
+        plt.legend(loc="best", fancybox=True, ncol=2, labelspacing=0.05, handletextpad=0.5, fontsize=16)
 
         self.dif_coef, self.dif_err, self.dif_y_int = np.array([]), np.array([]), np.array([])
         self.reduced_dif_coef, self.reduced_dif_err, self.reduced_dif_y_int = np.array([]), np.array([]), np.array([])
         plt.ylim(ymin=0)
         plt.xlim(xmin=0)
-        self.p = 0
         self.j += 15
         self.v += 1
 
@@ -469,23 +461,21 @@ class FilePlotting:
         x = np.linspace(0, 3, 150)  # TODO:  0.5
         V = 1 / pow((x ** 2 + par_a ** 2), power / 2)
         plt.figure('Potential')
-        # name = "n: " + self.n_str + " A: " + A
-        # plt.plot(x,V, label=name, linestyle='-', color=color_sequence[p])
 
-        name = "n: " + self.n_str
+        name = "n: " + self.n_str + " A: " + A
         # name = "A: " + A
         if par_a <= 1. and self.p == 0:
             iso = np.sqrt(1 - par_a ** 2)
             sak = 1 / pow((iso ** 2 + par_a ** 2), power / 2.0)
             plt.scatter(iso, sak, marker='o', color='magenta', label='Isosbestic point')
 
-        plt.plot(x, V, label=name)#, linestyle=self.line_style[self.line_it], color='black')
+        plt.plot(x, V, label=name)  # , linestyle=self.line_style[self.line_it], color='black')
         plt.xlim(xmin=x[0], xmax=2)
         plt.ylim(ymin=0)
 
         plt.xlabel(r"$r$", size=16)
         plt.ylabel(r"$\Phi$", size=16)
-        lgnd = plt.legend(loc="best", fancybox=True, ncol=1)
+        plt.legend(loc="best", fancybox=True, ncol=1)
         f, v = [], []
         if show_inf_p is True:
             temp = np.sqrt(par_a / (1. + power))
@@ -530,7 +520,6 @@ class FilePlotting:
         plt.xlim(0, 2)
         plt.ylim(ymin=0)
 
-        self.p += 1
         self.line_it += 1
 
     def RDF2(self, power, par_a):
@@ -541,7 +530,7 @@ class FilePlotting:
         x = np.linspace(0, 5, 300)
         G = np.exp(-1. / ((x ** 2 + par_a) ** (power / 2.0)) / 1.4)  # T_0 = 1.4 = thermostat temperature
         plt.figure('RDF for Ideal gas')
-        plt.plot(x, G, label=name, color=self.color_sequence2[self.c])
+        plt.plot(x, G, label=name)
         plt.xlim(xmin=0, xmax=2.5)
         plt.ylim(ymin=0)
         plt.legend(loc='best', fancybox=True)

@@ -24,7 +24,7 @@ if __name__ == '__main__':
     # for i in n_list:
     #     obj.rdf(0.5, 0.5, i, 0., iso_scale=False)
     for i in n_list:
-        obj.potential(i, 1)
+        obj.rdf(0.5, 0.5, i, 0, iso_scale=False, show_iso=True)
         # obj.potential(i, 1)
     #     obj.scaled_potential(0.5, i, 0.5)
         # obj.avg_pressure(1, 1, i)
