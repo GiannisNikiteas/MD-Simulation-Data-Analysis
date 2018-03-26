@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.cm as cm
 import scipy.stats as stats
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -167,9 +168,10 @@ class FilePlotting:
         plt.figure('2D Vector Field of particles')
         name = "rho: " + self.rho_str + "T: " + \
                self.t_str + "n: " + self.n_str + "A: " + self.a_str
-        Q = plt.quiver(rx, ry, vx, vy, rz, pivot='mid', cmap='gnuplot_r', alpha=0.75, label=name)
+        q = plt.quiver(rx, ry, vx, vy, rz, pivot='mid',
+                       cmap=cm.gnuplot_r, alpha=0.75, label=name)
         # plt.scatter(rx, ry, alpha=0.4, label=name)
-        plt.colorbar(Q)
+        plt.colorbar(q)
         plt.legend(loc="best")
 
     def vector_field3D(self, rho, t, power, par_a):
@@ -186,11 +188,17 @@ class FilePlotting:
         # v = np.sqrt(vx**2 + vy**2 + vz**2)
         name = "rho: " + self.rho_str + "T: " + \
                self.t_str + "n: " + self.n_str + "A: " + self.a_str
-        Q = plt.quiver(rx, ry, rz, vx, vy, vz, rz,
-                       label=name, alpha=0.7, normalize=True,
-                       cmap='gnuplot_r')
-        plt.colorbar(Q)
-        plt.legend(loc="best")
+        # x[startAt:endBefore:skip]
+        stride = 1
+        q = ax.quiver(rx[::stride], ry[::stride], rz[::stride],
+                      vx[::stride], vy[::stride], vz[::stride],
+                      cmap=cm.jet, label=name, alpha=0.7,
+                      normalize=True, pivot='middle')
+        q.set_array(rz[::stride])
+        # m = cm.ScalarMappable(cmap=cm.jet)
+        # m.set_array(rz)
+        fig.colorbar(q, cmap=cm.jet)
+        plt.legend(loc='best')
 
     # RDF Histogram
     def rdf(self, rho, t, power, par_a, iso_scale=True, show_iso=False):
@@ -220,7 +228,7 @@ class FilePlotting:
         # Plotting isosbestic point
         max_scaling = np.max(rdf)  # Scaling the ymax
         if show_iso is True:    # Show isosbestic point
-            iso = np.sqrt(1 - par_a ** 2)
+            iso = np.sqrt(1 - par_a ** 2)   # TODO: this is not correct, missing a factor
             # iso = np.sqrt(rho ** (2./3) - a_tilde ** 2)   # This is probably wrong
             plt.plot([iso, iso], [0, max_scaling + 0.1], '--', color='red')
 

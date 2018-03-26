@@ -5,10 +5,12 @@ from isomorphs import *
 import numpy as np
 
 
-# Potential strength list:
-# The larger the n-range, the wider the surface diagonal
-# For small n e.g. 8-12, the isomorph contours are concave and monotonic for an increasing T
-# As n increases e.g. 25-30, the isomorphs, become more linear, with a more prompt increase of rho, a vs T
+"""
+ Potential strength list:
+ The larger the n-range, the wider the surface diagonal
+ For small n e.g. 8-12, the isomorph contours are concave and monotonic for an increasing T
+ As n increases e.g. 25-30, the isomorphs, become more linear, with a more prompt increase of rho, a vs T
+"""
 n_list = np.arange(6, 25, dtype=int)
 
 # List of isomorphic temperatures:
