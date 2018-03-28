@@ -26,7 +26,3 @@ class Isomorph:
             self.rho_out.append(rho_out)
             self.a_out.append(a_out)
         return self.rho_out, self.a_out
-
-
-
-

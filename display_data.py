@@ -17,8 +17,8 @@ obj.vector_field3D(0.5, 0.5, 8, 0.5)
 #     obj.scaled_potential(rho_iso[i], 8, a_iso[i])
 #     obj.rdf(rho_iso[i], t_iso[i], 8, a_iso[i])
 
-# for i in n_list:
-#     obj.rdf(0.5, 0.5, i, 0., iso_scale=False)
+for i in n_list:
+    obj.rdf(0.5, 0.5, i, 0., iso_scale=False)
 # for i in n_list:
 #     obj.rdf(1, 1, i, 0.5, iso_scale=False, show_iso=True)
 #     obj.potential(i, 1)

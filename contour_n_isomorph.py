@@ -11,11 +11,11 @@ import numpy as np
  For small n e.g. 8-12, the isomorph contours are concave and monotonic for an increasing T
  As n increases e.g. 25-30, the isomorphs, become more linear, with a more prompt increase of rho, a vs T
 """
-n_list = np.arange(6, 25, dtype=int)
+n_list = np.arange(6, 8, dtype=int)
 
 # List of isomorphic temperatures:
-# num, adjusts vertical refinement of surface
-t_iso_line = np.linspace(0.5, 5, 100)
+# num, adjusts horizontal refinement of surface
+t_iso_line = np.linspace(0.5, 5, 10)
 # Lists for isomorphic density, parameter a and temperature:
 rho_iso = np.empty((0, len(t_iso_line)))
 a_iso = np.empty((0, len(t_iso_line)))
@@ -35,10 +35,10 @@ for i in range(len(n_list)):
 # Plot contours
 fig = plt.figure('3D contour plot')
 ax = fig.gca(projection='3d')
-ax.plot_surface(rho_iso, a_iso, t_iso, alpha=0.7, cmap=cm.gnuplot_r)
-cset = ax.contourf(rho_iso, a_iso, t_iso, zdir='z', offset=np.amin(t_iso), cmap=cm.coolwarm)
-cset = ax.contourf(rho_iso, a_iso, t_iso, zdir='x', offset=np.amin(rho_iso), cmap=cm.coolwarm, alpha=0.5)
-cset = ax.contourf(rho_iso, a_iso, t_iso, zdir='y', offset=np.amax(a_iso), cmap=cm.coolwarm, alpha=0.5)
+ax.plot_surface(rho_iso, a_iso, t_iso, alpha=0.9)#, cmap=cm.jet)
+# cset = ax.contourf(rho_iso, a_iso, t_iso, zdir='z', offset=np.amin(t_iso), cmap=cm.coolwarm)  # m.coolwarm
+# cset = ax.contourf(rho_iso, a_iso, t_iso, zdir='x', offset=np.amin(rho_iso), cmap=cm.coolwarm, alpha=0.5)
+# cset = ax.contourf(rho_iso, a_iso, t_iso, zdir='y', offset=np.amax(a_iso), cmap=cm.coolwarm, alpha=0.5)
 
 # Labels and Limits
 ax.set_xlabel(r'$\rho$')

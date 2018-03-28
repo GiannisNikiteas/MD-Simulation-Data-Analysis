@@ -190,6 +190,8 @@ class FilePlotting:
                self.t_str + "n: " + self.n_str + "A: " + self.a_str
         # x[startAt:endBefore:skip]
         stride = 1
+        ax.view_init(elev=18, azim=30)  # camera elevation and angle
+        ax.dist = 8  # camera distance
         q = ax.quiver(rx[::stride], ry[::stride], rz[::stride],
                       vx[::stride], vy[::stride], vz[::stride],
                       cmap=cm.jet, label=name, alpha=0.7,
