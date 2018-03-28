@@ -6,12 +6,12 @@ import numpy as np
 
 
 """
- Potential strength list:
- The larger the n-range, the wider the surface diagonal
- For small n e.g. 8-12, the isomorph contours are concave and monotonic for an increasing T
- As n increases e.g. 25-30, the isomorphs, become more linear, with a more prompt increase of rho, a vs T
+    The program plots the isomorphic surfaces generated for a fluid.
+    A reference Temperature and a parameter are given. 
+    The program generates a list of isomorphic points (t_iso, a_iso) for the given references parameters.
+    The program proceeds to calculate the isomorphic lines for a series of reference densities rho_ref.
+    Output is a contour plot for of the isomorph plane.
 """
-n_list = np.arange(6, 8, dtype=int)
 rho_ref = np.linspace(0.1, 5, 20)   # horizontal par
 n = 8
 # List of isomorphic temperatures:
@@ -21,11 +21,8 @@ t_iso_line = np.linspace(0.1, 5, 20)
 rho_iso = np.empty((0, len(t_iso_line)))
 a_iso = np.empty((0, len(t_iso_line)))
 t_iso = np.empty((0, len(t_iso_line)))
-# Reference seed with rho=0.5, T=0.5, a=0.5:
-# Note: if reference T > than any T in t_iso_line, then a "flipping" of the isomorph is observed
-# Explanation not yet given!
 
-# Generate matrix of isomorph quantities for various n s
+# Generate matrix of isomorph quantities for various rhos
 for i in range(len(rho_ref)):
     isomorph_line = Isomorph(1, rho_ref[i], 2.5, t_iso_line)
     temp_rho, temp_a = isomorph_line.gen_line(n)
@@ -36,7 +33,7 @@ for i in range(len(rho_ref)):
 # Plot contours
 fig = plt.figure('3D contour plot')
 ax = fig.gca(projection='3d')
-ax.plot_wireframe(rho_iso, t_iso, a_iso, alpha=0.9, cmap=cm.jet)
+ax.plot_wireframe(rho_iso, t_iso, a_iso, alpha=0.9, color='red')
 ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
 
 # Contour projections on 3D plot, enable if needed for visualisation
@@ -57,7 +54,7 @@ ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
 ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
 ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
 
-# Contour projections plots
+# Contour projections plots, enable if needed
 # plt.figure('Separate contours')
 # plt.subplot(131)    # X. Y, Z
 # cset = plt.contourf(rho_iso, t_iso, a_iso)
