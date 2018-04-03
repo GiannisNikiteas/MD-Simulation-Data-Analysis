@@ -1,5 +1,14 @@
 class Isomorph:
+    """
+    Isomorph state generator for fluid transitioning from MD to continuum limit
+    """
     def __init__(self, t_r, rho_r, a_r, t_out):
+        """
+        :param t_r: Reference Temperature
+        :param rho_r: Reference density
+        :param a_r: Reference A parameter
+        :param t_out: Range of temperatures the isomorph will be developed
+        """
         self.t_r = t_r  # Reference T
         self.rho_r = rho_r  # Reference density
         self.a_r = a_r  # Reference A par
@@ -17,6 +26,11 @@ class Isomorph:
         return a2
 
     def gen_line(self, n):
+        """
+        :param n: Potential power strength of the pair potential
+        :return: Output for Density and A of the isomorph, along the given rho, A and T reference point
+                 and the using T_OUT as a range of values for the isomorph
+        """
         self.rho_out = []
         self.a_out = []
         for i in range(len(self.t_out)):

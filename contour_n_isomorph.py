@@ -11,7 +11,7 @@ import numpy as np
  For small n e.g. 8-12, the isomorph contours are concave and monotonic for an increasing T
  As n increases e.g. 25-30, the isomorphs, become more linear, with a more prompt increase of rho, a vs T
 """
-n_list = np.arange(6, 8, dtype=int)
+n_list = np.arange(6, 25, dtype=int)
 
 # List of isomorphic temperatures:
 # num, adjusts horizontal refinement of surface
@@ -35,7 +35,7 @@ for i in range(len(n_list)):
 # Plot contours
 fig = plt.figure('3D contour plot')
 ax = fig.gca(projection='3d')
-ax.plot_surface(rho_iso, a_iso, t_iso, alpha=0.9)#, cmap=cm.jet)
+ax.scatter(rho_iso, a_iso, t_iso, alpha=0.9)#, cmap=cm.jet)
 # cset = ax.contourf(rho_iso, a_iso, t_iso, zdir='z', offset=np.amin(t_iso), cmap=cm.coolwarm)  # m.coolwarm
 # cset = ax.contourf(rho_iso, a_iso, t_iso, zdir='x', offset=np.amin(rho_iso), cmap=cm.coolwarm, alpha=0.5)
 # cset = ax.contourf(rho_iso, a_iso, t_iso, zdir='y', offset=np.amax(a_iso), cmap=cm.coolwarm, alpha=0.5)
