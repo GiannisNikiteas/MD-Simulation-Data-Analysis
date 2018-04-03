@@ -19,7 +19,7 @@ def iso_function(rho, t, rho0=1.0, t0=1.0, a0=0.5, n=8):
 rho = np.arange(0.1, 5.0, 0.05)
 t = np.arange(0.1, 5.0, 0.05)
 RHO, T = np.meshgrid(rho, t)
-n_list = np.arange(6, 12, dtype=int)
+n_list = np.arange(6, 8, dtype=int)
 
 ############################################################################
 # CUSTOM COLORMAP
@@ -55,7 +55,7 @@ def label_name(_a0, _n, _rho=None, _t0=None):
     return name_id
 
 
-def plot_isomorph_contour(_rho0, _t0, _a0, _n):
+def plot_isomorph_contour(_rho0, _t0, _a0, _n, show_projections=False):
     """
     Uses rho and t meshes from outer scope along with RHO, T 2D arrays to plot a wireframe contour.
     Can be used intuitivly in loops to generate rho vs T vs a vs n, contours
@@ -63,12 +63,19 @@ def plot_isomorph_contour(_rho0, _t0, _a0, _n):
     :param _t0: reference temperature
     :param _a0: reference parameter A
     :param _n: reference potential strength parameter
+    :param show_projections: Shows X, Y, Z projections of the contours
     """
     a = np.array([iso_function(rho, t, rho0=_rho0, t0=_t0, a0=_a0, n=_n)
                   for rho, t in zip(np.ravel(RHO), np.ravel(T))])
     A = a.reshape(RHO.shape)
     name = label_name(_a0, _n)
-    w = ax.plot_wireframe(RHO, T, A, alpha=0.9, rstride=4, cstride=4, label=name)
+    w = ax.plot_wireframe(RHO, T, A, alpha=1, rstride=4, cstride=4, label=name)
+    # Projections of X, Y, Z onto corresponding planes in 3D plot
+    if show_projections is True:
+        # Plots projections for every single contour. Can get confusing when plotting against n as well
+        cset = ax.contourf(RHO, T, A, zdir='z', offset=0, cmap=cm.jet, alpha=0.5)       # offset=np.amin(A),
+        cset = ax.contourf(RHO, T, A, zdir='x', offset=0, cmap=cm.coolwarm, alpha=0.5)  # offset=np.amin(RHO)
+        cset = ax.contourf(RHO, T, A, zdir='y', offset=5, cmap=cm.coolwarm, alpha=0.5)  # offset=np.amax(T),
     return w
 
 
@@ -88,11 +95,12 @@ ax.set_ylabel(r'T')
 # ax.set_ylim(np.amin(T), np.amax(T))
 ax.set_zlabel(r'a')
 # ax.set_zlim(np.amin(A), np.amax(A))
-ax.legend(loc='best', fancybox=True, fontsize='small')
+ax.legend(loc='lower right', fancybox=True, fontsize='small')
 
 # Grid background color set to white
 ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
 ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
 ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
 
-plt.show()
+fig.tight_layout()
+fig.show()
