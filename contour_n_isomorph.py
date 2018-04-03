@@ -12,16 +12,19 @@ import itertools
  For small n e.g. 8-12, the isomorph contours are concave and monotonic for an increasing T
  As n increases e.g. 25-30, the isomorphs, become more linear, with a more prompt increase of rho, a vs T
 """
-n_list = np.arange(6, 25, dtype=int)
+n_list = np.arange(6, 19, dtype=int)
 # marker = itertools.cycle((',', '+', '.', 'o', '*'))
 marker = [".", ",", "o", "v", "^", "<", ">",
           "1", "2", "3", "4", "8", "s", "p",
           "P", "*", "h", "H", "+", "x", "X",
           "D", "d", "|", "_"]
-
+marker = [".", ",", "o", "v", "^",
+          "1", "2", "3", "4", "8", "s", "p",
+          "P", "*", "h", "H", "+", "X",
+          "D", "d", "|", "_"]
 # List of isomorphic temperatures:
 # num, adjusts horizontal refinement of surface
-t_iso_line = np.linspace(0.5, 5, 15)
+t_iso_line = np.linspace(0.05, 5, 15)
 # Lists for isomorphic density, parameter a and temperature:
 rho_iso = np.empty((0, len(t_iso_line)))
 a_iso = np.empty((0, len(t_iso_line)))
@@ -42,9 +45,9 @@ for i in range(len(n_list)):
 fig = plt.figure('3D contour plot')
 ax = fig.gca(projection='3d')
 for i in range(len(n_list)):
-    ax.scatter(rho_iso[i], a_iso[i], t_iso[i], alpha=0.9, linestyle='-',
-               marker=marker[i], label='n: ' + str(n_list[i]))
-
+    # ax.scatter(rho_iso[i], a_iso[i], t_iso[i], alpha=0.9, linestyle='-',
+    #            marker=marker[i], label='n: ' + str(n_list[i]))
+    ax.plot_surface(rho_iso, a_iso, t_iso, alpha=0.6, label='n: ' + str(n_list[i]))
 
 # ax.contourf(rho_iso, a_iso, t_iso, alpha=0.9)
 # Projections of X, Y, Z onto corresponding planes in 3D plot
@@ -59,7 +62,7 @@ ax.set_ylabel(r'a')
 # ax.set_ylim(np.amin(a_iso), np.amax(a_iso))
 ax.set_zlabel(r'T')
 # ax.set_zlim(np.amin(t_iso), np.amax(t_iso))
-ax.legend(loc='best', fancybox=True)
+# ax.legend(loc='best', fancybox=True, fontsize='small')
 
 # plt.figure('Separate contours')
 # plt.subplot(131)    # X. Y, Z
