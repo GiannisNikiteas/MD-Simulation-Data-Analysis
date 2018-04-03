@@ -12,7 +12,7 @@ import itertools
  For small n e.g. 8-12, the isomorph contours are concave and monotonic for an increasing T
  As n increases e.g. 25-30, the isomorphs, become more linear, with a more prompt increase of rho, a vs T
 """
-n_list = np.arange(6, 13, dtype=int)
+n_list = np.arange(6, 25, dtype=int)
 # marker = itertools.cycle((',', '+', '.', 'o', '*'))
 marker = [".", ",", "o", "v", "^", "<", ">",
           "1", "2", "3", "4", "8", "s", "p",

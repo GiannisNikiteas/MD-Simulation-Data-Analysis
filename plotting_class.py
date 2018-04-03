@@ -34,8 +34,9 @@ class FilePlotting:
         self.reduced_dif_err = np.array([])
         self.dif_y_int = np.array([])
         self.reduced_dif_y_int = np.array([])
-        self.line_style = ['solid', 'dashed', 'dotted', 'dashdot']
+        self.line_style = ['solid', 'dashed', 'dotted', 'dashdot']  # TODO: Fix with itertools
 
+        # TODO: get rid of all these with itertools, This is python not C++
         # This is an iterator for the color array
         self.p, self.c = 0, 0
         self.j = 0  # stride for MSD

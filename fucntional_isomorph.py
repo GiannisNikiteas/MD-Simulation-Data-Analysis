@@ -1,11 +1,12 @@
 from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
 from matplotlib import cm
+from cycler import cycler
 import numpy as np
 
 """
-    Functional form of the isomorph generation.
-    The file generates a the contour for all the possible parameter a values, for a given T0 and a0.
+Functional form of the isomorph generation.
+The file generates a the contour for all the possible parameter a values, for a given T0 and a0.
 """
 
 
@@ -18,33 +19,46 @@ def iso_function(rho, t, rho0=1.0, t0=1.0, a0=0.5, n=8):
 rho = np.arange(0.1, 5.0, 0.05)
 t = np.arange(0.1, 5.0, 0.05)
 RHO, T = np.meshgrid(rho, t)
+n_list = np.arange(6, 12, dtype=int)
+
+############################################################################
+# CUSTOM COLORMAP
+############################################################################
+# Defining color scheme for the working set of axes
+color_map = cm.jet(np.linspace(0, 1, len(n_list)))
+# ax.set_prop_cycle(cycler('color', plt.cm.jet(np.linspace(0, 1, num_plots))))
 
 fig = plt.figure('3D contour plot, with function')
 ax = fig.gca(projection='3d')
+
 # Simple contour plot, USE FUNCTION plot_isomorph_contour instead
 # a = np.array([iso_function(rho, t) for rho, t in zip(np.ravel(RHO), np.ravel(T))])
 # A = a.reshape(RHO.shape)
 # ax.plot_wireframe(RHO, T, A, color='blue', alpha=0.5, rstride=2, cstride=2)
-################################################################
+#############################################################################
 
 
 def label_name(_a0, _n, _rho=None, _t0=None):
-    rho_str = '{:.4f}'.format(_rho)
-    t_str = '{:.4f}'.format(_t0)
+    rho_str = None
+    t_str = None
     a_str = '{:.5f}'.format(_a0)
     n_str = str(_n)
-
-    name_id = r'$\rho$: ' + rho_str + 'T: ' + t_str + 'a: ' + a_str + 'n: ' + n_str
+    name_id = None
     if (_rho is None) or (_t0 is None):  # or (_rho and _t0 is None)
         # No need for case handling when _t0=None and _rho!=None
         name_id = 'a: ' + a_str + 'n: ' + n_str
+    else:
+        rho_str = '{:.4f}'.format(_rho)
+        t_str = '{:.4f}'.format(_t0)
+        name_id = r'$\rho$: ' + rho_str + 'T: ' + t_str + 'a: ' + a_str + 'n: ' + n_str
 
     return name_id
 
 
 def plot_isomorph_contour(_rho0, _t0, _a0, _n):
     """
-    Uses rho and t meshes from outer scope along with RHO, T 2D arrays to plot a wireframe contour
+    Uses rho and t meshes from outer scope along with RHO, T 2D arrays to plot a wireframe contour.
+    Can be used intuitivly in loops to generate rho vs T vs a vs n, contours
     :param _rho0: reference density
     :param _t0: reference temperature
     :param _a0: reference parameter A
@@ -53,16 +67,28 @@ def plot_isomorph_contour(_rho0, _t0, _a0, _n):
     a = np.array([iso_function(rho, t, rho0=_rho0, t0=_t0, a0=_a0, n=_n)
                   for rho, t in zip(np.ravel(RHO), np.ravel(T))])
     A = a.reshape(RHO.shape)
-    ax.plot_wireframe(RHO, T, A, color='red', alpha=0.8, rstride=2, cstride=2)
+    name = label_name(_a0, _n)
+    w = ax.plot_wireframe(RHO, T, A, alpha=0.9, rstride=4, cstride=4, label=name)
+    return w
 
 
-# Labels and Axis limits
+#############################################################################
+# PLOTTING RHO vs T vs A vs N
+#############################################################################
+for i in range(len(n_list)):
+    canvas = plot_isomorph_contour(_rho0=0.5, _t0=1.0, _a0=0.5, _n=n_list[i])
+    canvas.set_color(color_map[i])
+
+#############################################################################
+# LABELS, AXIS AND VISUALISATION IMPROVEMENTS
+#############################################################################
 ax.set_xlabel(r'$\rho$')
 # ax.set_xlim(np.amin(RHO), np.amax(RHO))
 ax.set_ylabel(r'T')
 # ax.set_ylim(np.amin(T), np.amax(T))
 ax.set_zlabel(r'a')
 # ax.set_zlim(np.amin(A), np.amax(A))
+ax.legend(loc='best', fancybox=True, fontsize='small')
 
 # Grid background color set to white
 ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
