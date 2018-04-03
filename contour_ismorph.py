@@ -34,7 +34,6 @@ for i in range(len(rho_ref)):
 fig = plt.figure('3D contour plot')
 ax = fig.gca(projection='3d')
 ax.plot_wireframe(rho_iso, t_iso, a_iso, alpha=0.9, color='red')
-ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
 
 # Contour projections on 3D plot, enable if needed for visualisation
 # cset = ax.contourf(rho_iso, a_iso, t_iso, zdir='z', offset=np.amin(t_iso), cmap=cm.coolwarm)  # m.coolwarm
