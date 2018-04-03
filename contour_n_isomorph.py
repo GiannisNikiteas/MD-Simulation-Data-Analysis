@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from isomorphs import *
 import numpy as np
+import itertools
 
 
 """
@@ -11,11 +12,16 @@ import numpy as np
  For small n e.g. 8-12, the isomorph contours are concave and monotonic for an increasing T
  As n increases e.g. 25-30, the isomorphs, become more linear, with a more prompt increase of rho, a vs T
 """
-n_list = np.arange(6, 25, dtype=int)
+n_list = np.arange(6, 13, dtype=int)
+# marker = itertools.cycle((',', '+', '.', 'o', '*'))
+marker = [".", ",", "o", "v", "^", "<", ">",
+          "1", "2", "3", "4", "8", "s", "p",
+          "P", "*", "h", "H", "+", "x", "X",
+          "D", "d", "|", "_"]
 
 # List of isomorphic temperatures:
 # num, adjusts horizontal refinement of surface
-t_iso_line = np.linspace(0.5, 5, 10)
+t_iso_line = np.linspace(0.5, 5, 15)
 # Lists for isomorphic density, parameter a and temperature:
 rho_iso = np.empty((0, len(t_iso_line)))
 a_iso = np.empty((0, len(t_iso_line)))
@@ -35,32 +41,39 @@ for i in range(len(n_list)):
 # Plot contours
 fig = plt.figure('3D contour plot')
 ax = fig.gca(projection='3d')
-ax.scatter(rho_iso, a_iso, t_iso, alpha=0.9)#, cmap=cm.jet)
+for i in range(len(n_list)):
+    ax.scatter(rho_iso[i], a_iso[i], t_iso[i], alpha=0.9, linestyle='-',
+               marker=marker[i], label='n: ' + str(n_list[i]))
+
+
+# ax.contourf(rho_iso, a_iso, t_iso, alpha=0.9)
+# Projections of X, Y, Z onto corresponding planes in 3D plot
 # cset = ax.contourf(rho_iso, a_iso, t_iso, zdir='z', offset=np.amin(t_iso), cmap=cm.coolwarm)  # m.coolwarm
 # cset = ax.contourf(rho_iso, a_iso, t_iso, zdir='x', offset=np.amin(rho_iso), cmap=cm.coolwarm, alpha=0.5)
 # cset = ax.contourf(rho_iso, a_iso, t_iso, zdir='y', offset=np.amax(a_iso), cmap=cm.coolwarm, alpha=0.5)
 
 # Labels and Limits
 ax.set_xlabel(r'$\rho$')
-ax.set_xlim(np.amin(rho_iso), np.amax(rho_iso))
+# ax.set_xlim(np.amin(rho_iso), np.amax(rho_iso))
 ax.set_ylabel(r'a')
-ax.set_ylim(np.amin(a_iso), np.amax(a_iso))
+# ax.set_ylim(np.amin(a_iso), np.amax(a_iso))
 ax.set_zlabel(r'T')
-ax.set_zlim(np.amin(t_iso), np.amax(t_iso))
+# ax.set_zlim(np.amin(t_iso), np.amax(t_iso))
+ax.legend(loc='best', fancybox=True)
 
-plt.figure('Separate contours')
-plt.subplot(131)    # X. Y, Z
-cset = plt.contourf(rho_iso, a_iso, t_iso, cmap='coolwarm')
-plt.xlabel(r'$\rho$')
-plt.ylabel(r'a')
-plt.subplot(132)    # Y, Z, X
-cset = plt.contourf(a_iso, t_iso, rho_iso, cmap='coolwarm')
-plt.xlabel(r'a')
-plt.ylabel(r'T')
-plt.subplot(133)    # X, Z, Y
-cset = plt.contourf(rho_iso, t_iso, a_iso, cmap='coolwarm')
-plt.xlabel(r'$\rho$')
-plt.ylabel(r'T')
+# plt.figure('Separate contours')
+# plt.subplot(131)    # X. Y, Z
+# cset = plt.contourf(rho_iso, a_iso, t_iso, cmap='coolwarm')
+# plt.xlabel(r'$\rho$')
+# plt.ylabel(r'a')
+# plt.subplot(132)    # Y, Z, X
+# cset = plt.contourf(a_iso, t_iso, rho_iso, cmap='coolwarm')
+# plt.xlabel(r'a')
+# plt.ylabel(r'T')
+# plt.subplot(133)    # X, Z, Y
+# cset = plt.contourf(rho_iso, t_iso, a_iso, cmap='coolwarm')
+# plt.xlabel(r'$\rho$')
+# plt.ylabel(r'T')
 
 plt.tight_layout(pad=0.1, h_pad=0, w_pad=0)
 plt.show()
