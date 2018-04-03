@@ -19,10 +19,10 @@ def iso_function(rho, t, rho0=1.0, t0=1.0, a0=0.5, n=8):
 rho = np.arange(0.1, 5.0, 0.05)
 t = np.arange(0.1, 5.0, 0.05)
 RHO, T = np.meshgrid(rho, t)
-n_list = np.arange(6, 8, dtype=int)
+n_list = np.arange(6, 13, step=2, dtype=int)
 
 ############################################################################
-# CUSTOM COLORMAP
+# CUSTOM COLORMAP FOR n
 ############################################################################
 # Defining color scheme for the working set of axes
 color_map = cm.jet(np.linspace(0, 1, len(n_list)))
@@ -46,7 +46,7 @@ def label_name(_a0, _n, _rho=None, _t0=None):
     name_id = None
     if (_rho is None) or (_t0 is None):  # or (_rho and _t0 is None)
         # No need for case handling when _t0=None and _rho!=None
-        name_id = 'a: ' + a_str + 'n: ' + n_str
+        name_id = 'a: ' + a_str + ' n: ' + n_str
     else:
         rho_str = '{:.4f}'.format(_rho)
         t_str = '{:.4f}'.format(_t0)
@@ -55,7 +55,7 @@ def label_name(_a0, _n, _rho=None, _t0=None):
     return name_id
 
 
-def plot_isomorph_contour(_rho0, _t0, _a0, _n, show_projections=False):
+def plot_isomorph_contour(_rho0, _t0, _a0, _n, show_projections=False, transparency=1.0):
     """
     Uses rho and t meshes from outer scope along with RHO, T 2D arrays to plot a wireframe contour.
     Can be used intuitivly in loops to generate rho vs T vs a vs n, contours
@@ -69,7 +69,9 @@ def plot_isomorph_contour(_rho0, _t0, _a0, _n, show_projections=False):
                   for rho, t in zip(np.ravel(RHO), np.ravel(T))])
     A = a.reshape(RHO.shape)
     name = label_name(_a0, _n)
-    w = ax.plot_wireframe(RHO, T, A, alpha=1, rstride=4, cstride=4, label=name)
+    w = ax.plot_wireframe(RHO, T, A, alpha=transparency, rstride=4, cstride=4, label=name)
+    # w = ax.surface_plot(RHO, T, A, alpha=transparency, rstride=4, cstride=4, label=name)
+
     # Projections of X, Y, Z onto corresponding planes in 3D plot
     if show_projections is True:
         # Plots projections for every single contour. Can get confusing when plotting against n as well
@@ -80,11 +82,25 @@ def plot_isomorph_contour(_rho0, _t0, _a0, _n, show_projections=False):
 
 
 #############################################################################
-# PLOTTING RHO vs T vs A vs N
+# PLOTTING RHO vs T vs A vs N with COLORBAR
 #############################################################################
-for i in range(len(n_list)):
-    canvas = plot_isomorph_contour(_rho0=0.5, _t0=1.0, _a0=0.5, _n=n_list[i])
-    canvas.set_color(color_map[i])
+# canvas = None
+# for i in range(len(n_list)):
+#     canvas = plot_isomorph_contour(_rho0=0.5, _t0=1.0, _a0=0.5, _n=n_list[i], transparency=0.25)
+#     canvas.set_color(color_map[i])
+#
+# m = cm.ScalarMappable(cmap=cm.jet, norm=canvas.norm)
+# m.set_array(n_list)
+# fig.colorbar(m, cmap=cm.jet)
+
+#############################################################################
+# PLOTTING RHO vs T vs A vs N with DIFFERENT A
+#############################################################################
+p = plot_isomorph_contour(0.5, 1, 0.5, 8, transparency=0.6)
+p.set_color('blue')
+p = plot_isomorph_contour(0.5, 1, 1.0, 8, transparency=0.6)
+p.set_color('red')
+ax.legend(loc='best', fancybox=True, fontsize='small')
 
 #############################################################################
 # LABELS, AXIS AND VISUALISATION IMPROVEMENTS
@@ -95,7 +111,7 @@ ax.set_ylabel(r'T')
 # ax.set_ylim(np.amin(T), np.amax(T))
 ax.set_zlabel(r'a')
 # ax.set_zlim(np.amin(A), np.amax(A))
-ax.legend(loc='lower right', fancybox=True, fontsize='small')
+
 
 # Grid background color set to white
 ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
