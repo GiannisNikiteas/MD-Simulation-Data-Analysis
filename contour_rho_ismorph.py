@@ -48,7 +48,7 @@ ax.plot_wireframe(rho_iso, t_iso, a_iso, alpha=0.7, color='cyan')
 
 # Labels and Limits
 ax.set_xlabel(r'$\rho$')
-ax.set_xlim(0, np.amax(rho_iso))
+ax.set_xlim(0, np.amax(rho_iso))  # todo: test why max > rho_ref max
 ax.set_ylabel(r'T')
 ax.set_ylim(0, np.amax(t_iso))
 ax.set_zlabel(r'a')
