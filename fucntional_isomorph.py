@@ -11,7 +11,7 @@ The file generates a the contour for all the possible parameter a values, for a 
 
 
 def iso_function(rho, t, rho0=1.0, t0=1.0, a0=0.5, n=8):
-    a = a0 * (rho/rho0 * (t0/t) ** (-6/n)) ** (1.0/3.0)
+    a = a0 * (rho/rho0 * ((t0/t) ** (6/n))) ** (1.0/3.0)
     return a
 
 
@@ -64,6 +64,7 @@ def plot_isomorph_contour(_rho0, _t0, _a0, _n, show_projections=False, transpare
     :param _a0: reference parameter A
     :param _n: reference potential strength parameter
     :param show_projections: Shows X, Y, Z projections of the contours
+    :param transparency: alpha parameter for the plots to adjust transparency
     """
     a = np.array([iso_function(rho, t, rho0=_rho0, t0=_t0, a0=_a0, n=_n)
                   for rho, t in zip(np.ravel(RHO), np.ravel(T))])
@@ -92,6 +93,28 @@ def plot_isomorph_contour(_rho0, _t0, _a0, _n, show_projections=False, transpare
 # m = cm.ScalarMappable(cmap=cm.jet, norm=canvas.norm)
 # m.set_array(n_list)
 # fig.colorbar(m, cmap=cm.jet)
+
+#############################################################################
+# PLOTTING RHO vs T vs A vs N with VARYING RHO
+#############################################################################
+# todo: check with other file contour_rho_isomorph.py if correct
+# todo: if any correct or if none correct
+rho = t = None
+rho = t = np.linspace(0.01, 5, 50)
+RHO, T = np.meshgrid(rho, t)
+rho_ref = np.linspace(0.1, 5, 20)   # list of different reference densities
+n = 8
+g = None
+color_map_rho = cm.jet(np.linspace(0, 1, len(rho_ref)))
+for i in range(len(rho_ref)):
+    r_temp = rho_ref[i]
+    g = plot_isomorph_contour(_rho0=r_temp, _t0=1.0, _a0=2.5, _n=8, transparency=0.5)
+    g.set_color(color_map_rho[i])
+
+m = cm.ScalarMappable(cmap=cm.jet, norm=g.norm)
+m.set_array(rho)
+fig.colorbar(m, cmap=cm.jet)
+ax.legend(loc='best', fancybox=True, fontsize='small')
 
 #############################################################################
 # PLOTTING RHO vs T vs A vs N with DIFFERENT A
