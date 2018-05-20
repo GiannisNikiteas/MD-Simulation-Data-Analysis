@@ -13,15 +13,7 @@ import itertools
  As n increases e.g. 25-30, the isomorphs, become more linear, with a more prompt increase of rho, a vs T
 """
 n_list = np.arange(6, 19, dtype=int)
-# marker = itertools.cycle((',', '+', '.', 'o', '*'))
-marker = [".", ",", "o", "v", "^", "<", ">",
-          "1", "2", "3", "4", "8", "s", "p",
-          "P", "*", "h", "H", "+", "x", "X",
-          "D", "d", "|", "_"]
-marker = [".", ",", "o", "v", "^",
-          "1", "2", "3", "4", "8", "s", "p",
-          "P", "*", "h", "H", "+", "X",
-          "D", "d", "|", "_"]
+
 # List of isomorphic temperatures:
 # num, adjusts horizontal refinement of surface
 t_iso_line = np.linspace(0.05, 5, 15)

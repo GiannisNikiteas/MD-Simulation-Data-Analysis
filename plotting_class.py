@@ -4,15 +4,6 @@ import scipy.stats as stats
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-# Colors used for plots
-color_sequence = ['#1f77b4', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c',
-                    '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5',
-                    '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f',
-                    '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5']
-color_sequence2 = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#ff9896', '#9467bd', '#c5b0d5',
-                    '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f',
-                    '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5']
-
 
 class FilePlotting:
     """
@@ -206,6 +197,8 @@ class FilePlotting:
     # RDF Histogram
     def rdf(self, rho, t, power, par_a, iso_scale=True, show_iso=False):
         file_id = self.file_searcher(rho, t, power, par_a)
+        import os
+        print(os.getcwd())
         data = "Hist" + file_id + ".txt"
         num_lines = sum(1 for line in open(data))
         rdf = np.loadtxt(data, delimiter="\n")
@@ -498,6 +491,7 @@ class FilePlotting:
         self.p += 1
         self.line_it += 1
 
+    # In experimental stage
     def scaled_potential(self, rho, power, par_a):
         self.n_str = str(power)
         A = str(float(par_a))
@@ -586,7 +580,5 @@ class FilePlotting:
     @staticmethod
     def savefig(figname):
         return plt.savefig(figname, bbox_inches='tight', pad_inches=0)
-
-
 
 
