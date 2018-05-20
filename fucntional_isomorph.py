@@ -85,14 +85,14 @@ def plot_isomorph_contour(_rho0, _t0, _a0, _n, show_projections=False, transpare
 #############################################################################
 # PLOTTING RHO vs T vs A vs N with COLORBAR
 #############################################################################
-# canvas = None
-# for i in range(len(n_list)):
-#     canvas = plot_isomorph_contour(_rho0=0.5, _t0=1.0, _a0=0.5, _n=n_list[i], transparency=0.25)
-#     canvas.set_color(color_map[i])
-#
-# m = cm.ScalarMappable(cmap=cm.jet, norm=canvas.norm)
-# m.set_array(n_list)
-# fig.colorbar(m, cmap=cm.jet)
+canvas = None
+for i in range(len(n_list)):
+    canvas = plot_isomorph_contour(_rho0=0.5, _t0=1.0, _a0=0.5, _n=n_list[i], transparency=0.5)
+    canvas.set_color(color_map[i])
+
+m = cm.ScalarMappable(cmap=cm.jet, norm=canvas.norm)
+m.set_array(n_list)
+fig.colorbar(m, cmap=cm.jet)
 
 #############################################################################
 # PLOTTING RHO vs T vs A vs N with VARYING RHO
@@ -119,11 +119,11 @@ def plot_isomorph_contour(_rho0, _t0, _a0, _n, show_projections=False, transpare
 #############################################################################
 # PLOTTING RHO vs T vs A vs N with DIFFERENT A
 #############################################################################
-p = plot_isomorph_contour(0.5, 1, 0.5, 8, transparency=0.6)
-p.set_color('blue')
-p = plot_isomorph_contour(0.5, 1, 1.0, 8, transparency=0.6)
-p.set_color('red')
-ax.legend(loc='best', fancybox=True, fontsize='small')
+# p = plot_isomorph_contour(0.5, 1, 0.5, 8, transparency=0.6)
+# p.set_color('blue')
+# p = plot_isomorph_contour(0.5, 1, 1.0, 8, transparency=0.6)
+# p.set_color('red')
+# ax.legend(loc='best', fancybox=True, fontsize='small')
 
 #############################################################################
 # LABELS, AXIS AND VISUALISATION IMPROVEMENTS

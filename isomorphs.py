@@ -2,7 +2,7 @@ class Isomorph:
     """
     Isomorph state generator for fluid transitioning from MD to continuum limit
     """
-    def __init__(self, t_r, rho_r, a_r, t_out):
+    def __init__(self, rho_r, t_r, a_r, t_out):
         """
         :param t_r: Reference Temperature
         :param rho_r: Reference density
