@@ -437,7 +437,10 @@ class FilePlotting:
         :param my_list: List of parameter A coefficients
         :return: Figure of D vs A for a given number of iterations
         """
-
+        # I recommend not to fuck with this list, when using the GUI
+        # otherwise comment out for custom implementation
+        my_list = [0, 0.25, 0.50, 0.65, 0.7, 0.75, 0.8, 0.85, 0.90, 0.97, 1.00, 1.1, 1.2,
+           1.25, 1.50, 1.75, 2.00, 2.25, 2.50, 2.75, 4.00]
         for i in my_list:
             self.msd(rho, t, power, i)
             print("-----------------------------")
