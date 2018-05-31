@@ -71,7 +71,7 @@ class FilePlotting:
                 continue
             num_lines += 1
 
-        KE, U, Tot = np.loadtxt(data, usecols=(1, 2, 3), delimiter='\t', comments='#', unpack=True)
+        kin_en, pot_en, tot_en = np.loadtxt(data, usecols=(1, 2, 3), delimiter='\t', comments='#', unpack=True)
 
         #  Plots the Energies
         step = 0.005
@@ -79,38 +79,38 @@ class FilePlotting:
         x = np.linspace(0, time, num_lines)
         fig = plt.figure('Energy Plots')
 
-        Kin = plt.subplot2grid((3, 2), (0, 0), colspan=1)
-        Pot = plt.subplot2grid((3, 2), (1, 0), colspan=1)
-        TOT = plt.subplot2grid((3, 2), (2, 0), colspan=1)
-        All = plt.subplot2grid((3, 2), (0, 1), rowspan=3)
+        kin_f = plt.subplot2grid((3, 2), (0, 0), colspan=1)
+        pot_f = plt.subplot2grid((3, 2), (1, 0), colspan=1)
+        tot_f = plt.subplot2grid((3, 2), (2, 0), colspan=1)
+        all_f = plt.subplot2grid((3, 2), (0, 1), rowspan=3)
 
-        k, u, t = KE[500], U[500], Tot[500]
-        Kin.plot(x, KE, 'r')
-        Kin.locator_params(axis='y', nbins=4), Kin.set_ylim(ymax=4)
-        Pot.plot(x, U, 'g')
-        Pot.locator_params(axis='y', nbins=3)
-        Pot.set_ylabel("Energy units", size=16)
-        TOT.plot(x, Tot, 'b')
-        TOT.locator_params(axis='y', nbins=4)
-        TOT.set_ylim(ymax=6)
+        # k, u, t = kin_en[500], pot_en[500], tot_en[500]
+        kin_f.plot(x, kin_en, 'r')
+        kin_f.locator_params(axis='y', nbins=4), kin_f.set_ylim(ymax=4)
+        pot_f.plot(x, pot_en, 'g')
+        pot_f.locator_params(axis='y', nbins=3)
+        pot_f.set_ylabel("Energy units", size=16)
+        tot_f.plot(x, tot_en, 'b')
+        tot_f.locator_params(axis='y', nbins=4)
+        tot_f.set_ylim(ymax=6)
 
-        x_r = time / 2 - time / 4
+        # x_r = time / 2 - time / 4
         # Kin.set_title('Individual Plots n = %d' %power, fontsize=17)
-        Kin.set_title('Individual Plots', fontsize=17)
-        All.set_title('Energy Contributions', fontsize=17)
-        All.set_xlabel(r"Time $t$", fontsize=16)
+        kin_f.set_title('Individual Plots', fontsize=17)
+        all_f.set_title('Energy Contributions', fontsize=17)
+        all_f.set_xlabel(r"Time $t$", fontsize=16)
 
-        TOT.set_xlabel(r"Time $t$", fontsize=16)
+        tot_f.set_xlabel(r"Time $t$", fontsize=16)
         fig.subplots_adjust(hspace=0)
 
         # Tick correction
-        for ax in [Kin, Pot]:
+        for ax in [kin_f, pot_f]:
             plt.setp(ax.get_xticklabels(), visible=False)
             # The y-ticks will overlap with "hspace=0", so we'll hide the bottom tick
             ax.set_yticks(ax.get_yticks()[1:])
 
-        All.plot(x, KE, 'r', x, U, 'g', x, Tot, 'b')
-        All.set_ylim(ymax=5)
+        all_f.plot(x, kin_en, 'r', x, pot_en, 'g', x, tot_en, 'b')
+        all_f.set_ylim(ymax=5)
 
     def potential_data(self, rho, t, power, par_a):
         file_id = self.file_searcher(rho, t, power, par_a)
@@ -122,7 +122,7 @@ class FilePlotting:
                 continue
             num_lines += 1
 
-        U = np.loadtxt(data, usecols=2, delimiter='\t', comments='#', unpack=True)
+        u = np.loadtxt(data, usecols=2, delimiter='\t', comments='#', unpack=True)
 
         #  Plots the Energies
         name = "rho: " + self.rho_str + "T: " + \
@@ -131,7 +131,7 @@ class FilePlotting:
         time = num_lines * step
         x = np.linspace(0, time, num_lines)
         plt.figure('Potential Plots of Data')
-        plt.plot(x, U, label=name)
+        plt.plot(x, u, label=name)
         plt.legend(loc='best', fancybox=True)
 
     def particle_plot(self, rho, t, power, par_a):
@@ -144,8 +144,9 @@ class FilePlotting:
                self.t_str + "n: " + self.n_str + "A: " + self.a_str
         fig = plt.figure('3D Scatter Plot')
         ax = fig.add_subplot(111, projection='3d')
-        S = ax.scatter(rx, ry, rz, c=rz, cmap='gnuplot_r')
-        plt.colorbar(S)
+        s = ax.scatter(rx, ry, rz, c=rz, cmap='gnuplot_r', label=name)
+        plt.colorbar(s)
+        plt.legend(loc='best', fancybox=True)
 
     def vector_field(self, rho, t, power, par_a):
         file_id = self.file_searcher(rho, t, power, par_a)
@@ -166,7 +167,7 @@ class FilePlotting:
         plt.colorbar(q)
         plt.legend(loc="best")
 
-    def vector_field3D(self, rho, t, power, par_a):
+    def vector_field_3d(self, rho, t, power, par_a):
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Positions_Velocities" + file_id + ".txt"
 
@@ -197,18 +198,16 @@ class FilePlotting:
     # RDF Histogram
     def rdf(self, rho, t, power, par_a, iso_scale=True, show_iso=False):
         file_id = self.file_searcher(rho, t, power, par_a)
-        import os
-        print(os.getcwd())
         data = "Hist" + file_id + ".txt"
         num_lines = sum(1 for line in open(data))
         rdf = np.loadtxt(data, delimiter="\n")
         print(num_lines)
 
         # Number of particles, Number of bins
-        N, Nhist = 10 ** 3, 300
+        particles, bins = 10 ** 3, 300
         # Cut off radius
-        rg = 3.0   # ((N / rho) ** (1. / 3.)) / 2.
-        dr = rg / Nhist
+        rg = 3.0   # ((particles / rho) ** (1. / 3.)) / 2.
+        dr = rg / bins
 
         # r range, r=0 is intentionally neglected due to division by 0
         r = np.linspace(1, num_lines-1, num_lines)
@@ -239,9 +238,9 @@ class FilePlotting:
         # Line through y = 1
         plt.plot([0, r[-1]], [1, 1], '--', color='black', linewidth=0.5)
         # Plot limits and legends
-        plt.xlim(xmin=0, xmax=2.5)
+        plt.xlim(xmin=0, xmax=3)
         plt.ylim(ymin=0, ymax=max_scaling + 0.1)
-        plt.legend(loc="best", fancybox=True)
+        plt.legend(loc="best", fancybox=True, prop={'size': 8})
         self.c += 1
 
     # VAF
@@ -262,8 +261,8 @@ class FilePlotting:
 
         plt.figure('Velocity Autocorrelation Function')
         y = np.full(num_lines, 0)
-        xx = np.full(num_lines, time)
-        yy = np.linspace(5, -0.5, num_lines)
+        # xx = np.full(num_lines, time)
+        # yy = np.linspace(5, -0.5, num_lines)
         # plt.plot(xx, yy, '--', color='black')
         plt.plot(t_tilde, y, '--', color='black')
         plt.plot(t_tilde, cr, label=name)
@@ -280,52 +279,54 @@ class FilePlotting:
         file_id = self.file_searcher(rho, t, power, par_a)
         _msd = "MSD" + file_id + ".txt"
 
-        MSD = np.loadtxt(_msd, delimiter='\n')
+        msd_data = np.loadtxt(_msd, delimiter='\n')
 
         num_lines = sum(1 for line in open(_msd))
-        limit = 0.005 * num_lines
+        step = 0.005 / np.sqrt(t)
+        limit = step * num_lines
         step = int(0.6 * num_lines)
         x = np.linspace(0, limit, num=num_lines)
 
         if par_a >= 0:
             x_sliced = x[step:]
-            MSD_sliced = MSD[step:]
-            gradient, intercept, r_value, p_value, std_err = stats.linregress(x_sliced, MSD_sliced)
+            msd_sliced = msd_data[step:]
+            gradient, intercept, r_value, p_value, std_err = stats.linregress(x_sliced, msd_sliced)
 
             self.reduced_dif_coef = np.append(self.reduced_dif_coef, gradient)
             self.reduced_dif_err = np.append(self.reduced_dif_err, std_err)
             self.reduced_dif_y_int = np.append(self.reduced_dif_y_int, intercept)
 
         # Regular coefs are calculated independent of the if loop
-        gradient, intercept, r_value, p_value, std_err = stats.linregress(x, MSD)
+        gradient, intercept, r_value, p_value, std_err = stats.linregress(x, msd_data)
         self.dif_coef = np.append(self.dif_coef, gradient)
         self.dif_err = np.append(self.dif_err, std_err)
         self.dif_y_int = np.append(self.dif_y_int, intercept)
 
+        # TODO: this should be output to a log file for reference
         print('Diffusion coef: ', gradient, '\n',
               'y-intercept: ', intercept, '\n',
               'R value: ', r_value, '\n',
               'Fit Error: ', std_err)
 
-        name = "rho: " + self.rho_str + "T: " + \
-               self.t_str + "n: " + self.n_str + "A: " + self.a_str
+        name = "rho: " + self.rho_str + " T: " + \
+               self.t_str + " n: " + self.n_str + " a: " + self.a_str
         plt.figure('Mean Square Displacement')
-        plt.plot(x, MSD, label=name)
+        plt.plot(x, msd_data, label=name)
         plt.xlabel(r"$t$", fontsize=16)
         plt.ylabel(r"$MSD$", fontsize=16)
         plt.xlim(xmin=0, xmax=x[num_lines - 1])
-        plt.ylim(ymin=0, ymax=MSD[num_lines - 1])
+        plt.ylim(ymin=0, ymax=msd_data[num_lines - 1])
         plt.legend(loc="best", fancybox=True)
 
     # Pressure C
     def pc(self, rho, t, power, par_a):
         file_id = self.file_searcher(rho, t, power, par_a)
-        Pc = "Data" + file_id + ".txt"
+        pc_name = "Data" + file_id + ".txt"
 
-        cr = np.loadtxt(Pc, usecols=4, delimiter='\t',
-                        comments='#', unpack=True)
+        pc_data = np.loadtxt(pc_name, usecols=4, delimiter='\t',
+                             comments='#', unpack=True)
         num_lines = 0
-        for line in open(Pc):
+        for line in open(pc_name):
             if line.startswith('#'):
                 continue
             num_lines += 1
@@ -337,7 +338,7 @@ class FilePlotting:
                self.t_str + "n: " + self.n_str + "A: " + self.a_str
         plt.figure('Configurational Pressure')
 
-        plt.plot(xxx, cr, label=name)
+        plt.plot(xxx, pc_data, label=name)
         plt.xlabel(r"Time $t$", size=18)
         plt.ylabel(r"Configurational Pressure $P_C$", size=18)
         plt.legend(loc="best", prop={'size': 12},
@@ -348,11 +349,11 @@ class FilePlotting:
     # TODO: Probably these methods will not be static after fixing
     def avg_pressure(self, rho, t, power):
         file_id = self.file_searcher(rho, t, power)
-        Pc = "AVGdata" + file_id + ".txt"
+        pc_name = "AVGdata" + file_id + ".txt"
         name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
 
-        num_lines = sum(1 for line in open(Pc))
-        a, pc = np.loadtxt(Pc, delimiter='\t', comments='#', usecols=(0, 5), unpack=True)
+        num_lines = sum(1 for line in open(pc_name))
+        a, pc = np.loadtxt(pc_name, delimiter='\t', comments='#', usecols=(0, 5), unpack=True)
 
         plt.figure('Average Pressure')
         plt.plot(a, pc, '-o', label=name, markersize=3)
@@ -362,12 +363,12 @@ class FilePlotting:
         plt.ylabel(r"$P_c$", size=16)
         plt.legend(loc="best")
 
-    def avg_Kin(self, rho, t, power):
+    def avg_kin(self, rho, t, power):
         file_id = self.file_searcher(rho, t, power)
-        K = "AVGdata" + file_id + ".txt"
+        k_name = "AVGdata" + file_id + ".txt"
         name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
 
-        a, k = np.loadtxt(K, delimiter='\t', comments='#', usecols=(0, 2), unpack=True)
+        a, k = np.loadtxt(k_name, delimiter='\t', comments='#', usecols=(0, 2), unpack=True)
 
         plt.figure('Average Kinetic Energy')
         plt.plot(a, k, label=name)
@@ -376,7 +377,7 @@ class FilePlotting:
         plt.ylabel(r"Kinetic Energy $K$")
         plt.legend(loc="best")
 
-    def avg_Pot(self, rho, t, power):
+    def avg_pot(self, rho, t, power):
         file_id = self.file_searcher(rho, t, power)
         u = "AVGdata" + file_id + ".txt"
         name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
@@ -392,41 +393,41 @@ class FilePlotting:
 
     def avg_en(self, rho, t, power):
         file_id = self.file_searcher(rho, t, power)
-        E = "AVGdata" + file_id + ".txt"
-        name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
+        e_name = "AVGdata" + file_id + ".txt"
+        # name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
 
-        num_lines = sum(1 for line in open(E))
+        num_lines = sum(1 for line in open(e_name))
 
-        a, K, U, T = np.loadtxt(E, delimiter='\t', comments='#', usecols=(0, 2, 3, 4), unpack=True)
+        a, K, U, T = np.loadtxt(e_name, delimiter='\t', comments='#', usecols=(0, 2, 3, 4), unpack=True)
 
         fig = plt.figure('Average Energies')
-        Kin = plt.subplot2grid((3, 2), (0, 0), colspan=1)
-        Pot = plt.subplot2grid((3, 2), (1, 0), colspan=1)
-        TOT = plt.subplot2grid((3, 2), (2, 0), colspan=1)
-        All = plt.subplot2grid((3, 2), (0, 1), rowspan=3)
+        kin_f = plt.subplot2grid((3, 2), (0, 0), colspan=1)
+        pot_f = plt.subplot2grid((3, 2), (1, 0), colspan=1)
+        tot_f = plt.subplot2grid((3, 2), (2, 0), colspan=1)
+        all_f = plt.subplot2grid((3, 2), (0, 1), rowspan=3)
 
-        Kin.plot(a, K, color='r')
-        Kin.set_ylim(ymin=2.0), Kin.locator_params(axis='y', nbins=5, prune='lower')
-        Pot.plot(a, U, color='g')
-        Pot.locator_params(axis='y', nbins=4), Pot.set_ylabel("Energy units")
-        TOT.plot(a, T, color='c')
-        TOT.locator_params(axis='y', nbins=3), TOT.locator_params(axis='x', nbins=4)
-        TOT.set_xlabel(r"Parameter $A$")
+        kin_f.plot(a, K, color='r')
+        kin_f.set_ylim(ymin=2.0), kin_f.locator_params(axis='y', nbins=5, prune='lower')
+        pot_f.plot(a, U, color='g')
+        pot_f.locator_params(axis='y', nbins=4), pot_f.set_ylabel("Energy units")
+        tot_f.plot(a, T, color='c')
+        tot_f.locator_params(axis='y', nbins=3), tot_f.locator_params(axis='x', nbins=4)
+        tot_f.set_xlabel(r"Parameter $A$")
 
-        Kin.set_title('Individual Plots for n = %d' % power, fontsize=14)
-        All.set_title('Total Energy, Kinetic and Potential')
-        All.set_xlabel(r"Parameter $A$")
+        kin_f.set_title('Individual Plots for n = %d' % power, fontsize=14)
+        all_f.set_title('Total Energy, Kinetic and Potential')
+        all_f.set_xlabel(r"Parameter $A$")
 
         fig.subplots_adjust(hspace=0)
 
-        for ax in [Kin, Pot]:
+        for ax in [kin_f, pot_f]:
             plt.setp(ax.get_xticklabels(), visible=False)
             # The y-ticks will overlap with "hspace=0", so we'll hide the bottom tick
             ax.set_yticks(ax.get_yticks()[1:])
 
-        All.plot(a, K, 'r', a, U, 'g', a, T, 'c')
-        All.set_ylim(ymax=6)
-        All.locator_params(axis='x', nbins=4)
+        all_f.plot(a, K, 'r', a, U, 'g', a, T, 'c')
+        all_f.set_ylim(ymax=6)
+        all_f.locator_params(axis='x', nbins=4)
 
     def diffusion_plot(self, rho, t, power, my_list):
         """
@@ -439,19 +440,19 @@ class FilePlotting:
         """
         # I recommend not to fuck with this list, when using the GUI
         # otherwise comment out for custom implementation
-        my_list = [0, 0.25, 0.50, 0.65, 0.7, 0.75, 0.8, 0.85, 0.90, 0.97, 1.00, 1.1, 1.2,
-           1.25, 1.50, 1.75, 2.00, 2.25, 2.50, 2.75, 4.00]
+        # my_list = [0, 0.25, 0.50, 0.65, 0.7, 0.75, 0.8, 0.85, 0.90, 0.97, 1.00, 1.1, 1.2,
+        #    1.25, 1.50, 1.75, 2.00, 2.25, 2.50, 2.75, 4.00]
         for i in my_list:
             self.msd(rho, t, power, i)
             print("-----------------------------")
         name = "n: " + str(power)
-        steps = ['5k', '10k', '12.5k', '15k', '20k']
+        # steps = ['5k', '10k', '12.5k', '15k', '20k']
 
         plt.figure('Diffusion coefficients D vs A')
-        plt.plot(my_list, self.dif_coef, '--o', label=name)
-        plt.xlabel(r"$A$", fontsize=16)
+        plt.plot(my_list, self.dif_coef, '--o', label=name, markersize=3.5)
+        plt.xlabel(r"$a$", fontsize=16)
         plt.ylabel(r"$D$", fontsize=16)
-        plt.legend(loc="best", fancybox=True, ncol=2, labelspacing=0.05, handletextpad=0.5, fontsize=16)
+        plt.legend(loc="best", fancybox=True, ncol=2)
 
         self.dif_coef, self.dif_err, self.dif_y_int = np.array([]), np.array([]), np.array([])
         self.reduced_dif_coef, self.reduced_dif_err, self.reduced_dif_y_int = np.array([]), np.array([]), np.array([])
@@ -463,20 +464,20 @@ class FilePlotting:
     # No data plots
     def potential(self, power, par_a, show_inf_p=False):
         self.n_str = str(power)
-        A = str(float(par_a))
+        a = str(float(par_a))
 
         x = np.linspace(0, 3, 150)  # TODO:  0.5
-        V = 1 / pow((x ** 2 + par_a ** 2), power / 2)
+        phi = 1 / pow((x ** 2 + par_a ** 2), power / 2)
         plt.figure('Potential')
 
-        name = "n: " + self.n_str + " A: " + A
+        name = "n: " + self.n_str + " A: " + a
         # name = "A: " + A
         if par_a <= 1. and self.p == 0:
             iso = np.sqrt(1 - par_a ** 2)
             sak = 1 / pow((iso ** 2 + par_a ** 2), power / 2.0)
             plt.scatter(iso, sak, marker='o', color='magenta', label='Isosbestic point')
 
-        plt.plot(x, V, label=name)  # , linestyle=self.line_style[self.line_it], color='black')
+        plt.plot(x, phi, label=name)  # , linestyle=self.line_style[self.line_it], color='black')
         plt.xlim(xmin=x[0], xmax=2)
         plt.ylim(ymin=0)
 
@@ -497,7 +498,7 @@ class FilePlotting:
     # In experimental stage
     def scaled_potential(self, rho, power, par_a):
         self.n_str = str(power)
-        A = str(float(par_a))
+        a = str(float(par_a))
 
         r = np.linspace(0, 3, 150)  # TODO:  0.5
         a_tilde = par_a * rho ** (1./3.)    # Scale a
@@ -509,13 +510,13 @@ class FilePlotting:
 
     def force(self, power, par_a):
         self.n_str = str(power)
-        A = str(float(par_a))
+        a = str(float(par_a))
 
         x = np.linspace(0.0, 3, 300)  # division with 0
-        V = power * x * (pow((x ** 2 + par_a), (-power / 2 - 1)))
+        phi = power * x * (pow((x ** 2 + par_a), (-power / 2 - 1)))
         plt.figure('Force')
-        name = " A: " + A
-        plt.plot(x, V, label=name, linestyle=self.line_style[self.line_it], color='black')
+        name = " A: " + a
+        plt.plot(x, phi, label=name, linestyle=self.line_style[self.line_it], color='black')
         plt.xlabel(r"$r$", size=16)
         plt.ylabel(r"$f$", size=16)
         plt.legend(loc="best", fancybox=True)  # fontsize=16
@@ -530,10 +531,10 @@ class FilePlotting:
 
         self.line_it += 1
 
-    def RDF2(self, power, par_a):
+    def rdf_2(self, power, par_a):
         self.n_str = str(power)
-        A = str(float(par_a))
-        name = "n: " + self.n_str + " A: " + A
+        a = str(float(par_a))
+        name = "n: " + self.n_str + " A: " + a
 
         x = np.linspace(0, 5, 300)
         G = np.exp(-1. / ((x ** 2 + par_a) ** (power / 2.0)) / 1.4)  # T_0 = 1.4 = thermostat temperature
