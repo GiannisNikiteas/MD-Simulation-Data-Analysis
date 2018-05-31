@@ -156,7 +156,7 @@ class MainPage(tk.Frame):
         force.grid(row=5, column=1)
 
         rdf2 = ttk.Button(text="RDF2",
-                          command=lambda: obj.RDF2(n.get(), a.get()))
+                          command=lambda: obj.rdf_2(n.get(), a.get()))
         rdf2.grid(row=6, column=0)
 
         avg_q_label = ttk.Label(text="Average Quantities", font=LARGE_FONT)

@@ -19,7 +19,7 @@ def iso_function(rho, t, rho0=1.0, t0=1.0, a0=0.5, n=8):
 rho = np.arange(0.1, 5.0, 0.05)
 t = np.arange(0.1, 5.0, 0.05)
 RHO, T = np.meshgrid(rho, t)
-n_list = np.arange(6, 13, step=2, dtype=int)
+n_list = np.arange(6, 13, step=3, dtype=int)
 
 ############################################################################
 # CUSTOM COLORMAP FOR n
@@ -87,12 +87,13 @@ def plot_isomorph_contour(_rho0, _t0, _a0, _n, show_projections=False, transpare
 #############################################################################
 canvas = None
 for i in range(len(n_list)):
-    canvas = plot_isomorph_contour(_rho0=0.5, _t0=1.0, _a0=0.5, _n=n_list[i], transparency=0.5)
+    canvas = plot_isomorph_contour(_rho0=0.5, _t0=0.05, _a0=0.5, _n=n_list[i], transparency=0.5)
     canvas.set_color(color_map[i])
 
 m = cm.ScalarMappable(cmap=cm.jet, norm=canvas.norm)
 m.set_array(n_list)
-fig.colorbar(m, cmap=cm.jet)
+# fig.colorbar(m, cmap=cm.jet)
+ax.legend(loc='best', fancybox=True, fontsize='small')
 
 #############################################################################
 # PLOTTING RHO vs T vs A vs N with VARYING RHO
