@@ -122,7 +122,7 @@ class FilePlotting:
                 continue
             num_lines += 1
 
-        u = np.loadtxt(data, usecols=2, delimiter='\t', comments='#', unpack=True)
+        rho, u = np.loadtxt(data, usecols=(2, 8), delimiter='\t', comments='#', unpack=True)
 
         #  Plots the Energies
         name = "rho: " + self.rho_str + "T: " + \
@@ -131,7 +131,7 @@ class FilePlotting:
         time = num_lines * step
         x = np.linspace(0, time, num_lines)
         plt.figure('Potential Plots of Data')
-        plt.plot(x, u, label=name)
+        plt.plot(rho, u, label=name)
         plt.legend(loc='best', fancybox=True)
 
     def particle_plot(self, rho, t, power, par_a):
@@ -317,6 +317,7 @@ class FilePlotting:
         plt.xlim(xmin=0, xmax=x[num_lines - 1])
         plt.ylim(ymin=0, ymax=msd_data[num_lines - 1])
         plt.legend(loc="best", fancybox=True)
+        print("@ index: ", np.argmax(msd_data), " value: ", max(msd_data))
 
     # Pressure C
     def pc(self, rho, t, power, par_a):
@@ -571,10 +572,10 @@ class FilePlotting:
         vz_plot = plt.subplot2grid((2, 3), (0, 2), colspan=1)
         v_plot = plt.subplot2grid((2, 3), (1, 0), colspan=3)
 
-        n, bins, patches = vx_plot.hist(vx, 150, normed=1, label='vx')
-        n, bins, patches = vy_plot.hist(vy, 150, normed=1, label='vy')
-        n, bins, patches = vz_plot.hist(vz, 150, normed=1, label='vz')
-        n, bins, patches = v_plot.hist(v, 150, normed=1, label='v')
+        n, bins, patches = vx_plot.hist(vx, 150, density=1, label='vx')
+        n, bins, patches = vy_plot.hist(vy, 150, density=1, label='vy')
+        n, bins, patches = vz_plot.hist(vz, 150, density=1, label='vz')
+        n, bins, patches = v_plot.hist(v, 150, density=1, label='v')
 
         plt.plot(lnspc, pdf_mb, label='Theory')
         plt.xlim(xmin=0)
