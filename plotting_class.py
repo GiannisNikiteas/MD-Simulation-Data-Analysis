@@ -71,8 +71,8 @@ class FilePlotting:
                 continue
             num_lines += 1
 
-        kin_en, pot_en, tot_en = np.loadtxt(data, usecols=(1, 2, 3), delimiter='\t', comments='#', unpack=True)
-
+        pot_en, kin_en = np.loadtxt(data, usecols=(3, 4), delimiter='\t', comments='#', unpack=True)
+        tot_en = pot_en + kin_en
         #  Plots the Energies
         step = 0.005
         time = num_lines * step
@@ -122,7 +122,7 @@ class FilePlotting:
                 continue
             num_lines += 1
 
-        rho, u = np.loadtxt(data, usecols=(2, 8), delimiter='\t', comments='#', unpack=True)
+        rho, u = np.loadtxt(data, usecols=(1, 3), delimiter='\t', comments='#', unpack=True)
 
         #  Plots the Energies
         name = "rho: " + self.rho_str + "T: " + \
@@ -246,13 +246,19 @@ class FilePlotting:
     # VAF
     def vaf(self, rho, t, power, par_a):
         file_id = self.file_searcher(rho, t, power, par_a)
-        vaf = "VAF" + file_id + ".txt"
+        data = "Data" + file_id + ".txt"
 
-        cr = np.loadtxt(vaf, delimiter='\n')
-        num_lines = sum(1 for line in open(vaf))
+        cr = np.loadtxt(data, usecols=8, delimiter='\t', unpack=True, comments='#')
+
+        num_lines = 0
+        for line in open(data):
+            if line.startswith('#'):
+                continue
+            num_lines += 1
+
         time_step = 0.005 / np.sqrt(t)
         time = time_step * num_lines
-        x = np.linspace(0, time, num=num_lines)
+        x = np.linspace(0, time, num_lines)
         t_tilde = x * rho ** (1./3.) * t ** 0.5
         name = ""
         if num_lines < 100000:
@@ -277,11 +283,16 @@ class FilePlotting:
     # MSD
     def msd(self, rho, t, power, par_a):
         file_id = self.file_searcher(rho, t, power, par_a)
-        _msd = "MSD" + file_id + ".txt"
+        data = "Data" + file_id + ".txt"
 
-        msd_data = np.loadtxt(_msd, delimiter='\n')
+        msd_data = np.loadtxt(data, usecols=7, delimiter='\t', unpack=True)
 
-        num_lines = sum(1 for line in open(_msd))
+        num_lines = 0
+        for line in open(data):
+            if line.startswith('#'):
+                continue
+            num_lines += 1
+
         step = 0.005 / np.sqrt(t)
         limit = step * num_lines
         step = int(0.6 * num_lines)
@@ -324,7 +335,7 @@ class FilePlotting:
         file_id = self.file_searcher(rho, t, power, par_a)
         pc_name = "Data" + file_id + ".txt"
 
-        pc_data = np.loadtxt(pc_name, usecols=4, delimiter='\t',
+        pc_data = np.loadtxt(pc_name, usecols=5, delimiter='\t',
                              comments='#', unpack=True)
         num_lines = 0
         for line in open(pc_name):
