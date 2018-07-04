@@ -122,7 +122,7 @@ class FilePlotting:
                 continue
             num_lines += 1
 
-        rho, u = np.loadtxt(data, usecols=(1, 3), delimiter='\t', comments='#', unpack=True)
+        rho_list, u = np.loadtxt(data, usecols=(1, 3), delimiter='\t', comments='#', unpack=True)
 
         #  Plots the Energies
         name = "rho: " + self.rho_str + "T: " + \
@@ -131,7 +131,7 @@ class FilePlotting:
         time = num_lines * step
         x = np.linspace(0, time, num_lines)
         plt.figure('Potential Plots of Data')
-        plt.plot(rho, u, label=name)
+        plt.plot(rho_list, u, label=name)
         plt.legend(loc='best', fancybox=True)
 
     def particle_plot(self, rho, t, power, par_a):
@@ -196,7 +196,7 @@ class FilePlotting:
         plt.legend(loc='best')
 
     # RDF Histogram
-    def rdf(self, rho, t, power, par_a, iso_scale=True, show_iso=False):
+    def rdf(self, rho, t, power, par_a, iso_scale=False, show_iso=False):
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Hist" + file_id + ".txt"
         num_lines = sum(1 for line in open(data))
@@ -285,7 +285,7 @@ class FilePlotting:
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Data" + file_id + ".txt"
 
-        msd_data = np.loadtxt(data, usecols=7, delimiter='\t', unpack=True)
+        rho_list, msd_data = np.loadtxt(data, usecols=(1, 7), delimiter='\t', unpack=True)
 
         num_lines = 0
         for line in open(data):
@@ -296,7 +296,7 @@ class FilePlotting:
         step = 0.005 / np.sqrt(t)
         limit = step * num_lines
         step = int(0.6 * num_lines)
-        x = np.linspace(0, limit, num=num_lines)
+        x = np.linspace(0, num_lines-1, num=num_lines)
 
         if par_a >= 0:
             x_sliced = x[step:]
@@ -322,11 +322,11 @@ class FilePlotting:
         name = "rho: " + self.rho_str + " T: " + \
                self.t_str + " n: " + self.n_str + " a: " + self.a_str
         plt.figure('Mean Square Displacement')
-        plt.plot(x, msd_data, label=name)
+        plt.plot(rho_list, msd_data, label=name)
         plt.xlabel(r"$t$", fontsize=16)
         plt.ylabel(r"$MSD$", fontsize=16)
-        plt.xlim(xmin=0, xmax=x[num_lines - 1])
-        plt.ylim(ymin=0, ymax=msd_data[num_lines - 1])
+        # plt.xlim(xmin=0, xmax=x[num_lines - 1])
+        # plt.ylim(ymin=0, ymax=msd_data[num_lines - 1])
         plt.legend(loc="best", fancybox=True)
         print("@ index: ", np.argmax(msd_data), " value: ", max(msd_data))
 
