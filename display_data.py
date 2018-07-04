@@ -2,21 +2,20 @@ from PathHandling import *
 from plotting_class import *
 
 
-os.chdir('C:/Code/C++/MD-simulation/Archives of Data/testing')
-obj = FilePlotting(10000, 1000)  # steps, particles
+os.chdir('C:/Code/C++/MD-simulation/Archives of Data/testing/gaussian/long_quench')
+obj = FilePlotting(700000, 1000)  # steps, particles
 
 my_list = [0, 0.25, 0.50, 0.7, 0.75, 0.8, 0.85, 0.90, 0.95,
            1.00, 1.1, 1.2, 1.25, 1.50, 1.75, 2.00]
 a_list = [0, 0.50, 0.75, 1.0, 1.25, 2.0]
 n_list = [6, 8, 10, 12]
-
+t_list = np.linspace(0.001, 0.01, 10)
 # for i in n_list:
 #     obj.rdf(0.5, 1, i, 0, iso_scale=False, show_iso=False)
 #     obj.rdf(1, 1, i, 0, iso_scale=False, show_iso=False)
 #     # obj.vaf(0.5, 1, 6, i)
 
-obj.pc(0.5, 0.5, 6, 0)
-# obj.potential_data(0.05, 0.005, 0, 0)
+obj.msd(0.05, 0.006, 0, 0)
 
 # obj.rdf(0.5, 0.5, 8, 0.5, iso_scale=True)
 # obj.rdf(0.8409, 2.0, 8, 0.42045, iso_scale=True)
