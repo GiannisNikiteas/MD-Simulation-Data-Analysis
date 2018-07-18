@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.cm as cm
 import scipy.stats as stats
+from scipy import interpolate
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -26,7 +27,8 @@ class FilePlotting:
         self.dif_y_int = np.array([])
         self.reduced_dif_y_int = np.array([])
         self.line_style = ['solid', 'dashed', 'dotted', 'dashdot']  # TODO: Fix with itertools
-
+        self.interpolated_data = []             # TODO: this is a butcher's approach to solving the problem
+        self.dr = None
         # TODO: get rid of all these with itertools, This is python not C++
         # This is an iterator for the color array
         self.p, self.c = 0, 0
@@ -201,7 +203,6 @@ class FilePlotting:
         data = "Hist" + file_id + ".txt"
         num_lines = sum(1 for line in open(data))
         rdf = np.loadtxt(data, delimiter="\n")
-        print(num_lines)
 
         # Number of particles, Number of bins
         particles, bins = 10 ** 3, 300
@@ -322,7 +323,7 @@ class FilePlotting:
         name = "rho: " + self.rho_str + " T: " + \
                self.t_str + " n: " + self.n_str + " a: " + self.a_str
         plt.figure('Mean Square Displacement')
-        plt.plot(rho_list, msd_data, label=name)
+        plt.plot(x, msd_data, label=name)
         plt.xlabel(r"$t$", fontsize=16)
         plt.ylabel(r"$MSD$", fontsize=16)
         # plt.xlim(xmin=0, xmax=x[num_lines - 1])
@@ -592,6 +593,60 @@ class FilePlotting:
         plt.xlim(xmin=0)
         plt.title(self.n_str + '~' + self.a_str)
         plt.legend(loc='best', fancybox=True)
+
+    def rdf_extrapolate(self, rho, t, power, par_a):
+        file_id = self.file_searcher(rho, t, power, par_a)
+        data = "Hist" + file_id + ".txt"
+        num_lines = sum(1 for line in open(data))
+        rdf = np.loadtxt(data, delimiter="\n")
+
+        # Number of particles, Number of bins
+        particles, bins = 10 ** 3, 300
+        # Cut off radius
+        rg = 3.0
+        self.dr = rg / bins
+        r = np.linspace(1, num_lines - 1, num_lines)
+        r = np.multiply(r, self.dr)
+        max_scaling = np.max(rdf)  # Scaling the ymax
+
+        name = "rho: " + self.rho_str + " T: " + self.t_str + " n: " + self.n_str + " A: " + self.a_str
+        # plt.plot(r, rdf, '-', markersize=4, label=name)
+
+        f = interpolate.interp1d(r, rdf, kind='linear')
+        r_interp = np.linspace(r[0], r[-1], 1000)
+        rdf_interp = f(r_interp)
+        self.dr = rg / 1000
+        self.interpolated_data.append(rdf_interp)
+        plt.plot(r_interp, rdf_interp, label='interpolation '+name)
+        plt.plot([0, r[-1]], [1, 1], '--', color='black', linewidth=0.5)
+        # Plot limits and legends
+        plt.xlim(xmin=0, xmax=3)
+        plt.ylim(ymin=0, ymax=max_scaling + 0.1)
+        # Plot labels
+        plt.xlabel(r"$r$", fontsize=16)
+        plt.ylabel(r"$g(r)$", fontsize=16)
+        plt.legend(loc="best", fancybox=True, prop={'size': 8})
+
+
+    def find_intersect(self, interp_list):
+        """
+        Finds the intersection of our interpollated data, assuming that our interpolated data
+        have a reasonable sampling frequency so that the interpolation is not coarse.
+        :param interpolated_list: a list of lists, or a 2D array
+        :return:
+        """
+        # TODO: this needs serious fixing, code below just for demonstrative purposes in meeting
+        l0 = interp_list[2]
+        l1 = interp_list[3]
+        l2 = interp_list[2]
+        l3 = interp_list[3]
+        list_r = []
+        tolerance = 0.0005
+        for i in range(len(l0)):
+            if (l0[i] > 0.5 and l1[i] > 0.5) and abs(l0[i] - l1[i]) < tolerance:
+                list_r.append(i*self.dr)
+        print(list_r)
+        return list_r
 
     @staticmethod
     def savefig(figname):
