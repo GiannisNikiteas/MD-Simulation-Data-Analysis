@@ -1,7 +1,6 @@
 from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
 from matplotlib import cm
-from cycler import cycler
 import numpy as np
 
 """
@@ -19,26 +18,11 @@ def iso_function(rho, t, rho0=1.0, t0=1.0, a0=0.5, n=8):
 rho = np.arange(0.1, 5.0, 0.05)
 t = np.arange(0.1, 5.0, 0.05)
 RHO, T = np.meshgrid(rho, t)
-n_list = np.arange(6, 13, step=3, dtype=int)
+# n_list = np.arange(6, 13, step=3, dtype=int)
+n_list = [6, 12]
 
 
-############################################################################
-# CUSTOM COLORMAP FOR n
-############################################################################
-# Defining color scheme for the working set of axes
-color_map = cm.jet(np.linspace(0, 1, len(n_list)))
-# ax.set_prop_cycle(cycler('color', plt.cm.jet(np.linspace(0, 1, num_plots))))
-
-fig = plt.figure('3D contour plot, with function')
-ax = fig.gca(projection='3d')
-
-# Simple contour plot, USE FUNCTION plot_isomorph_contour instead
-# a = np.array([iso_function(rho, t) for rho, t in zip(np.ravel(RHO), np.ravel(T))])
-# A = a.reshape(RHO.shape)
-# ax.plot_wireframe(RHO, T, A, color='blue', alpha=0.5, rstride=2, cstride=2)
 #############################################################################
-
-
 def label_name(_a0, _n, _rho=None, _t0=None):
     rho_str = None
     t_str = None
@@ -83,10 +67,15 @@ def plot_isomorph_contour(_rho0, _t0, _a0, _n, show_projections=False, transpare
     return w
 
 
-#############################################################################
+############################################################################
 # PLOTTING RHO vs T vs A vs N with COLORBAR
-#############################################################################
+############################################################################
+# Custom colormap
+color_map = cm.jet(np.linspace(0, 1, len(n_list)))
+fig = plt.figure('3D contour plot, with function')
+ax = fig.gca(projection='3d')
 canvas = None
+
 for i in range(len(n_list)):
     canvas = plot_isomorph_contour(_rho0=0.5, _t0=0.05, _a0=0.5, _n=n_list[i], transparency=0.5)
     canvas.set_color(color_map[i])
@@ -99,33 +88,38 @@ ax.legend(loc='best', fancybox=True, fontsize='small')
 #############################################################################
 # PLOTTING RHO vs T vs A vs N with VARYING RHO
 #############################################################################
-# todo: check with other file contour_rho_isomorph.py if correct
-# todo: if any correct or if none correct
-# rho = t = None
-# rho = t = np.arange(0.01, 5, 0.05)
-# RHO, T = np.meshgrid(rho, t)
-# rho_ref = np.linspace(0.1, 5, 20)   # list of different reference densities
-# n = 8
-# g = None
-# color_map_rho = cm.jet(np.linspace(0, 1, len(rho_ref)))
-# for i in range(len(rho_ref)):
-#     r_temp = rho_ref[i]
-#     g = plot_isomorph_contour(_rho0=r_temp, _t0=1.0, _a0=1, _n=8, transparency=0.5)
-#     g.set_color(color_map_rho[i])
-#
-# m = cm.ScalarMappable(cmap=cm.jet, norm=g.norm)
-# m.set_array(rho)
-# fig.colorbar(m, cmap=cm.jet)
-# ax.legend(loc='best', fancybox=True, fontsize='small')
+fig = plt.figure(r'3D contour plot, with function var $\rho$')
+ax = fig.gca(projection='3d')
+
+rho = t = None
+rho = t = np.arange(0.01, 5, 0.05)
+RHO, T = np.meshgrid(rho, t)
+rho_ref = np.linspace(0.1, 5, 20)   # list of different reference densities
+n = 8
+g = None
+color_map_rho = cm.jet(np.linspace(0, 1, len(rho_ref)))
+for i in range(len(rho_ref)):
+    r_temp = rho_ref[i]
+    g = plot_isomorph_contour(_rho0=r_temp, _t0=1.0, _a0=1, _n=8, transparency=0.5)
+    g.set_color(color_map_rho[i])
+
+m = cm.ScalarMappable(cmap=cm.jet, norm=g.norm)
+m.set_array(rho)
+fig.colorbar(m, cmap=cm.jet)
+ax.legend(loc='best', fancybox=True, fontsize='small')
 
 #############################################################################
 # PLOTTING RHO vs T vs A vs N with DIFFERENT A
 #############################################################################
-# p = plot_isomorph_contour(0.5, 1, 0.5, 8, transparency=0.6)
-# p.set_color('blue')
-# p = plot_isomorph_contour(0.5, 1, 1.0, 8, transparency=0.6)
-# p.set_color('red')
-# ax.legend(loc='best', fancybox=True, fontsize='small')
+color_map = cm.jet(np.linspace(0, 1, len(n_list)))
+fig = plt.figure('3D contour plot, with function var A')
+ax = fig.gca(projection='3d')
+
+p = plot_isomorph_contour(0.5, 1, 0.5, 8, transparency=0.6)
+p.set_color('blue')
+p = plot_isomorph_contour(0.5, 1, 1.0, 8, transparency=0.6)
+p.set_color('red')
+ax.legend(loc='best', fancybox=True, fontsize='small')
 
 #############################################################################
 # LABELS, AXIS AND VISUALISATION IMPROVEMENTS
