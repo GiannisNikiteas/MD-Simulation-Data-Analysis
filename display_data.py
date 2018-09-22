@@ -1,6 +1,5 @@
-from PathHandling import *
 from plotting_class import *
-
+import os
 
 os.chdir('/home/gn/Desktop/test_data')
 obj = FilePlotting(10000, 1000)  # steps, particles
