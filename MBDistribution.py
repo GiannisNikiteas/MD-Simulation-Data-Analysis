@@ -4,7 +4,11 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.special import erf
 import matplotlib.pyplot as plt
-from scipy import stats
+
+"""
+This code provides the maxwell boltzmann distribution for the 
+C++ implementation of the Molecular Dynamics algorithm
+"""
 
 
 def mb_speed_distribution():

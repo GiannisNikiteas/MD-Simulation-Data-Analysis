@@ -63,6 +63,15 @@ class FilePlotting:
         return name_id
 
     def energy_plots(self, rho, t, power, par_a):
+        """
+        Creates a figure where the average kinetic, potential and total energy are displayed.
+        Separately and in a combined graph.
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :return: Nothing. Simply adds a plot on the corresponding canvas
+        """
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Data" + file_id + ".txt"
 
@@ -115,6 +124,14 @@ class FilePlotting:
         all_f.set_ylim(ymax=5)
 
     def potential_data(self, rho, t, power, par_a):
+        """
+        Creates plots for the visualisation of the average potential energy of the fluid.
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :return: Nothing. Simply adds a plot on the corresponding canvas
+        """
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Data" + file_id + ".txt"
 
@@ -137,6 +154,15 @@ class FilePlotting:
         plt.legend(loc='best', fancybox=True)
 
     def particle_plot(self, rho, t, power, par_a):
+        """
+        Creates a 3D plot for the particles in the fluid.
+        The colormap depicts the z-position of the particle.
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :return: Nothing. Simply adds a plot on the corresponding canvas
+        """
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Positions_Velocities" + file_id + ".txt"
 
@@ -151,6 +177,15 @@ class FilePlotting:
         plt.legend(loc='best', fancybox=True)
 
     def vector_field(self, rho, t, power, par_a):
+        """
+        Creates a 2D projection of the of the loaded files of the fluid for
+        position and velocities
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :return: Nothing. Simply adds a plot on the corresponding canvas
+        """
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Positions_Velocities" + file_id + ".txt"
 
@@ -169,7 +204,17 @@ class FilePlotting:
         plt.colorbar(q)
         plt.legend(loc="best")
 
+    # 3D visualisation of the fluid with vector arrows
     def vector_field_3d(self, rho, t, power, par_a):
+        """
+        Creates a 3D projection based on the last iteration of the MD algorithm
+        of the fluids last position and velocities on a vector map
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :return: Nothing. Simply adds a plot on the corresponding canvas
+        """
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Positions_Velocities" + file_id + ".txt"
 
@@ -197,8 +242,25 @@ class FilePlotting:
         fig.colorbar(q, cmap=cm.jet)
         plt.legend(loc='best')
 
-    # RDF Histogram
+    # Radial Distribution Function
     def rdf(self, rho, t, power, par_a, iso_scale=False, show_iso=False):
+        """
+        Creates a plot for the Radial Distribution Function of the fluid, which depicts
+        the microscopic density fluctuations of the molecules as a function of distance.
+        The parameters iso_scale and show_iso are optional and should normally be set to False,
+        unless the very specific isosbestic behaviour is examined.
+
+
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :param iso_scale: Optional, scales the values of r, the radius, based on the isosbestic model that
+                          has been created
+        :param show_iso: Optional, shows the location of the theoretical isosbestic point between different rdfs
+        :return: Nothing. Simply adds a plot on the corresponding canvas
+
+        """
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Hist" + file_id + ".txt"
         num_lines = sum(1 for line in open(data))
@@ -224,7 +286,7 @@ class FilePlotting:
         # Plotting isosbestic point
         max_scaling = np.max(rdf)  # Scaling the ymax
         if show_iso is True:    # Show isosbestic point
-            iso = np.sqrt(1 - par_a ** 2)   # TODO: this is not correct, missing a factor
+            iso = np.sqrt(1 - par_a ** 2)   # TODO: this is not correct, missing a factor probably, revise theory!
             # iso = np.sqrt(rho ** (2./3) - a_tilde ** 2)   # This is probably wrong
             plt.plot([iso, iso], [0, max_scaling + 0.1], '--', color='red')
 
@@ -244,8 +306,17 @@ class FilePlotting:
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
         self.c += 1
 
-    # VAF
+    # Velocity Autocorrelation Function
     def vaf(self, rho, t, power, par_a):
+        """
+        Creates a figure for the Velocity Autocorrelation Function of the fluid, which illustrates
+        if the fluid remains a coupled system through time (correlated) or it uncouples.
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :return: Nothing. Simply adds a plot on the corresponding canvas
+        """
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Data" + file_id + ".txt"
 
@@ -281,8 +352,18 @@ class FilePlotting:
                    labelspacing=0.01, columnspacing=0.01, fancybox=True,
                    fontsize=12)
 
-    # MSD
+    # Mean Square Displacement
     def msd(self, rho, t, power, par_a):
+        """
+        Creates a figure which depicts the Mean Square Displacement for our fluid.
+        According to diffusion theory the slope of the MSD corresponds to the inverse of the
+        diffusion coefficient
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :return: Nothing. Simply adds a plot on the corresponding canvas
+        """
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Data" + file_id + ".txt"
 
@@ -361,6 +442,14 @@ class FilePlotting:
     # TODO: Look how AVG files are named and fix
     # TODO: Probably these methods will not be static after fixing
     def avg_pressure(self, rho, t, power):
+        """
+        Plots the average Configurational (virial) pressure of the fluid throughout
+        the entire simulation
+        :param rho:
+        :param t:
+        :param power:
+        :return:
+        """
         file_id = self.file_searcher(rho, t, power)
         pc_name = "AVGdata" + file_id + ".txt"
         name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
@@ -377,6 +466,16 @@ class FilePlotting:
         plt.legend(loc="best")
 
     def avg_kin(self, rho, t, power):
+        """
+        Plots the average kinetic energy of the fluid throughout the entire simulation.
+        The kinetic energy is supposed to be constant since the fluid is placed in an
+        isothermal container, hence the deviations in kinetic energy can be used as an
+        error metric
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :return: Nothing. Simply adds a plot on the corresponding canvas
+        """
         file_id = self.file_searcher(rho, t, power)
         k_name = "AVGdata" + file_id + ".txt"
         name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
@@ -405,6 +504,13 @@ class FilePlotting:
         plt.legend(loc="best")
 
     def avg_en(self, rho, t, power):
+        """
+        Plots the average total energy of the fluid throughout the entire simulation
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :return: Nothing. Simply adds a plot on the corresponding canvas
+        """
         file_id = self.file_searcher(rho, t, power)
         e_name = "AVGdata" + file_id + ".txt"
         # name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
@@ -476,6 +582,16 @@ class FilePlotting:
 
     # No data plots
     def potential(self, power, par_a, show_inf_p=False):
+        """
+        A plot of the pair potential used in the simulations.
+        It includes the functionality of displaying the isosbestic points
+        of the potential
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :param show_inf_p: Show the x-axis origin, for cases where A=0
+                           the value has to be False for the graphs to display properly
+        :return: Nothing. Simply adds a plot on the corresponding canvas
+        """
         self.n_str = str(power)
         a = str(float(par_a))
 
@@ -510,6 +626,13 @@ class FilePlotting:
 
     # In experimental stage
     def scaled_potential(self, rho, power, par_a):
+        """
+        A Scaled potential for the isosbestic point theory
+        :param rho:
+        :param power:
+        :param par_a:
+        :return:
+        """
         self.n_str = str(power)
         a = str(float(par_a))
 
@@ -522,6 +645,12 @@ class FilePlotting:
         plt.plot(r_tilde, phi, )
 
     def force(self, power, par_a):
+        """
+        Plots the force experienced by the molecules
+        :param power: Potential strength
+        :param par_a: Softening parameter
+        :return: Nothing, Simply adds a plot to the corresponding canvas
+        """
         self.n_str = str(power)
         a = str(float(par_a))
 
@@ -545,6 +674,13 @@ class FilePlotting:
         self.line_it += 1
 
     def rdf_2(self, power, par_a):
+        """
+        A theoretical plot for the RDF in the ideal gas limit approximation.
+        The integral terms of the equation have not been included
+        :param power: Potential strength
+        :param par_a: Softening parameter
+        :return: Nothing, Simply adds a figure to the corresponding canvas
+        """
         self.n_str = str(power)
         a = str(float(par_a))
         name = "n: " + self.n_str + " A: " + a
@@ -560,6 +696,15 @@ class FilePlotting:
         self.c += 1
 
     def vel_dist(self, rho, t, power, par_a):
+        """
+        Plots the velocity distributions for the X, Y, Z and the combined velocity vector
+        for the last savec position of the fluid
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :return: Nothing. Simply adds a plot on the corresponding canvas
+        """
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Positions_Velocities" + file_id + ".txt"
         name = "n: " + self.n_str + " A: " + self.a_str
@@ -595,6 +740,15 @@ class FilePlotting:
         plt.legend(loc='best', fancybox=True)
 
     def rdf_extrapolate(self, rho, t, power, par_a):
+        """
+        It interpolates linearly between the data provided for the RDF which in turn
+        makes possible to find the intersection point between the curves.
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :return: Nothing. Simply adds a plot on the corresponding canvas
+        """
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Hist" + file_id + ".txt"
         num_lines = sum(1 for line in open(data))
@@ -627,12 +781,11 @@ class FilePlotting:
         plt.ylabel(r"$g(r)$", fontsize=16)
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
 
-
     def find_intersect(self, interp_list):
         """
         Finds the intersection of our interpollated data, assuming that our interpolated data
         have a reasonable sampling frequency so that the interpolation is not coarse.
-        :param interpolated_list: a list of lists, or a 2D array
+        :param interp_list: a list of lists, or a 2D array
         :return:
         """
         # TODO: this needs serious fixing, code below just for demonstrative purposes in meeting

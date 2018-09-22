@@ -1,6 +1,8 @@
 import platform
 import os
-
+"""
+This is legacy code that should not be used, in any case!
+"""
 
 class OSPaths:
     """
