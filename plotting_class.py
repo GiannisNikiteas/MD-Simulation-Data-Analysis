@@ -258,22 +258,35 @@ class FilePlotting:
         :param iso_scale: Optional, scales the values of r, the radius, based on the isosbestic model that
                           has been created
         :param show_iso: Optional, shows the location of the theoretical isosbestic point between different rdfs
-        :return: Nothing. Simply adds a plot on the corresponding canvas
+        :return: The numpy.array for the RDF data
 
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = "Hist" + file_id + ".txt"
+        data = "RDF" + file_id + ".txt"
         num_lines = sum(1 for line in open(data))
-        rdf = np.loadtxt(data, delimiter="\n")
+        rdf = np.loadtxt(data, delimiter="\t", usecols=1, comments="#")
 
         # Number of particles, Number of bins
-        particles, bins = 10 ** 3, 300
+        particles, bins = int(self.particles_str), 500
         # Cut off radius
         rg = 3.0   # ((particles / rho) ** (1. / 3.)) / 2.
         dr = rg / bins
 
+        # Initial normalisation factor of
+
+        # Normalise the raw RDF for long distances
+        # for i in range(1, bins-1):
+        #     norm = particles * \
+        #            int(self.step_str) * \
+        #            float(self.rho_str) *\
+        #            2*np.pi/3.0 *\
+        #            ((rg*i/bins + dr)**3 - (rg*i/bins)**3)
+        #     rdf[i] /= norm
+
         # r range, r=0 is intentionally neglected due to division by 0
-        r = np.linspace(1, num_lines-1, num_lines)
+        # num_lines-1 because one of them is a comment
+        num_lines -= 2
+        r = np.linspace(1, num_lines, num_lines)
         r = np.multiply(r, dr)
         a_tilde = par_a * rho ** (1./3.)    # Scale a
 
@@ -291,7 +304,7 @@ class FilePlotting:
             plt.plot([iso, iso], [0, max_scaling + 0.1], '--', color='red')
 
         name = "rho: " + self.rho_str + " T: " + self.t_str + " n: " + self.n_str + " A: " + self.a_str
-        plt.plot(r, rdf, '-', markersize=4, label=name)
+        plt.plot(r, rdf, '-o', markersize=4, label=name)
 
         # Plot labels
         plt.xlabel(r"$r$", fontsize=16)
@@ -305,6 +318,7 @@ class FilePlotting:
         plt.ylim(ymin=0, ymax=max_scaling + 0.1)
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
         self.c += 1
+        return rdf
 
     # Velocity Autocorrelation Function
     def vaf(self, rho, t, power, par_a):
@@ -739,7 +753,7 @@ class FilePlotting:
         plt.title(self.n_str + '~' + self.a_str)
         plt.legend(loc='best', fancybox=True)
 
-    def rdf_extrapolate(self, rho, t, power, par_a):
+    def rdf_interpolate(self, rho, t, power, par_a):
         """
         It interpolates linearly between the data provided for the RDF which in turn
         makes possible to find the intersection point between the curves.
@@ -747,11 +761,14 @@ class FilePlotting:
         :param t: Temperature
         :param power: Pair potential strength
         :param par_a: Softening parameter
-        :return: Nothing. Simply adds a plot on the corresponding canvas
+        :return: A numpy.array of the interpolated RDF data
         """
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Hist" + file_id + ".txt"
+        # Measure the number of lines in the file in order to normalise
+        # the distance r to the correct units
         num_lines = sum(1 for line in open(data))
+        # Load the RDF data
         rdf = np.loadtxt(data, delimiter="\n")
 
         # Number of particles, Number of bins
@@ -761,17 +778,24 @@ class FilePlotting:
         self.dr = rg / bins
         r = np.linspace(1, num_lines - 1, num_lines)
         r = np.multiply(r, self.dr)
-        max_scaling = np.max(rdf)  # Scaling the ymax
+        max_scaling = np.max(rdf)  # Scaling the plot to ymax
 
         name = "rho: " + self.rho_str + " T: " + self.t_str + " n: " + self.n_str + " A: " + self.a_str
         # plt.plot(r, rdf, '-', markersize=4, label=name)
 
+        # Make and interpolating function
         f = interpolate.interp1d(r, rdf, kind='linear')
+        # Create a more accurate radius array
         r_interp = np.linspace(r[0], r[-1], 1000)
+
+        # Use the interpolation function
         rdf_interp = f(r_interp)
+        # begin ????
         self.dr = rg / 1000
         self.interpolated_data.append(rdf_interp)
-        plt.plot(r_interp, rdf_interp, label='interpolation '+name)
+        # end ????
+        plt.figure('Interpolated RDF')
+        plt.plot(r_interp, rdf_interp, '-o', label='interpolation '+name)
         plt.plot([0, r[-1]], [1, 1], '--', color='black', linewidth=0.5)
         # Plot limits and legends
         plt.xlim(xmin=0, xmax=3)
@@ -780,26 +804,38 @@ class FilePlotting:
         plt.xlabel(r"$r$", fontsize=16)
         plt.ylabel(r"$g(r)$", fontsize=16)
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
+        return rdf_interp
 
-    def find_intersect(self, interp_list):
-        """
-        Finds the intersection of our interpollated data, assuming that our interpolated data
-        have a reasonable sampling frequency so that the interpolation is not coarse.
-        :param interp_list: a list of lists, or a 2D array
-        :return:
-        """
-        # TODO: this needs serious fixing, code below just for demonstrative purposes in meeting
-        l0 = interp_list[2]
-        l1 = interp_list[3]
-        l2 = interp_list[2]
-        l3 = interp_list[3]
-        list_r = []
-        tolerance = 0.0005
-        for i in range(len(l0)):
-            if (l0[i] > 0.5 and l1[i] > 0.5) and abs(l0[i] - l1[i]) < tolerance:
-                list_r.append(i*self.dr)
-        print(list_r)
-        return list_r
+    def find_intersect(self, rho, t, power_list, par_a):
+        rdf_list = []
+        # Get all RDFs with different n values into a single container
+        for n in power_list:
+            rdf_temp = self.rdf_interpolate(rho, t, n, par_a)
+            rdf_temp.append(rdf_temp)
+
+        # Loop through the container of the RDFs to find intersection points
+
+
+
+    # def find_intersect(self, interp_list):
+    #     """
+    #     Finds the intersection of our interpollated data, assuming that our interpolated data
+    #     have a reasonable sampling frequency so that the interpolation is not coarse.
+    #     :param interp_list: a list of lists, or a 2D array
+    #     :return:
+    #     """
+    #     # TODO: this needs serious fixing, code below just for demonstrative purposes in meeting
+    #     l0 = interp_list[2]
+    #     l1 = interp_list[3]
+    #     l2 = interp_list[2]
+    #     l3 = interp_list[3]
+    #     list_r = []
+    #     tolerance = 0.0005
+    #     for i in range(len(l0)):
+    #         if (l0[i] > 0.5 and l1[i] > 0.5) and abs(l0[i] - l1[i]) < tolerance:
+    #             list_r.append(i*self.dr)
+    #     print(list_r)
+    #     return list_r
 
     @staticmethod
     def savefig(figname):

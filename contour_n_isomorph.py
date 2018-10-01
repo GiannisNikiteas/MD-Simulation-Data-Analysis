@@ -1,10 +1,6 @@
-from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from isomorphs import *
+from src.isomorphs import *
 import numpy as np
-import itertools
-
 
 """
  Potential strength list:
