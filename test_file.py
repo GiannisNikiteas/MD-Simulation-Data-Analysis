@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from src.isomorphs import *
+from isomorphs import *
 import numpy as np
 
 

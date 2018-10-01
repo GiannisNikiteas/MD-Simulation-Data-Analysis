@@ -3,6 +3,7 @@ import matplotlib.cm as cm
 import scipy.stats as stats
 from scipy import interpolate
 import matplotlib.pyplot as plt
+import statistics as stat
 from mpl_toolkits.mplot3d import Axes3D
 
 
@@ -280,7 +281,7 @@ class FilePlotting:
         #            int(self.step_str) * \
         #            float(self.rho_str) *\
         #            2*np.pi/3.0 *\
-        #            ((rg*i/bins + dr)**3 - (rg*i/bins)**3)
+        #            ((rg*i/bins + dr/2.0)**3 - (rg*i/bins - dr/2.0)**3)
         #     rdf[i] /= norm
 
         # r range, r=0 is intentionally neglected due to division by 0
@@ -318,7 +319,9 @@ class FilePlotting:
         plt.ylim(ymin=0, ymax=max_scaling + 0.1)
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
         self.c += 1
-        return rdf
+
+        # return the plotting lists
+        return r, rdf
 
     # Velocity Autocorrelation Function
     def vaf(self, rho, t, power, par_a):
@@ -764,24 +767,25 @@ class FilePlotting:
         :return: A numpy.array of the interpolated RDF data
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = "Hist" + file_id + ".txt"
+        data = "RDF" + file_id + ".txt"
         # Measure the number of lines in the file in order to normalise
         # the distance r to the correct units
         num_lines = sum(1 for line in open(data))
         # Load the RDF data
-        rdf = np.loadtxt(data, delimiter="\n")
+        rdf = np.loadtxt(data, delimiter="\t", usecols=1, comments="#")
 
         # Number of particles, Number of bins
-        particles, bins = 10 ** 3, 300
+        particles, bins = int(self.particles_str), 500
         # Cut off radius
         rg = 3.0
         self.dr = rg / bins
-        r = np.linspace(1, num_lines - 1, num_lines)
+
+        num_lines -= 2
+        r = np.linspace(1, num_lines, num_lines)
         r = np.multiply(r, self.dr)
         max_scaling = np.max(rdf)  # Scaling the plot to ymax
 
         name = "rho: " + self.rho_str + " T: " + self.t_str + " n: " + self.n_str + " A: " + self.a_str
-        # plt.plot(r, rdf, '-', markersize=4, label=name)
 
         # Make and interpolating function
         f = interpolate.interp1d(r, rdf, kind='linear')
@@ -804,14 +808,51 @@ class FilePlotting:
         plt.xlabel(r"$r$", fontsize=16)
         plt.ylabel(r"$g(r)$", fontsize=16)
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
-        return rdf_interp
+        return r_interp, rdf_interp
 
-    def find_intersect(self, rho, t, power_list, par_a):
+    def find_intersect(self, rho, t, n_list, par_a):
+        rdf_interp_list = []
         rdf_list = []
+        r_interp = []
+        r = []
         # Get all RDFs with different n values into a single container
-        for n in power_list:
-            rdf_temp = self.rdf_interpolate(rho, t, n, par_a)
-            rdf_temp.append(rdf_temp)
+        for n in n_list:
+            # Get normal rdfs
+            r, rdf_temp = self.rdf(rho, t, n, par_a)
+            # Get interpolated rdf
+            r_interp, rdf_interp_temp = self.rdf_interpolate(rho, t, n, par_a)
+            rdf_interp_list.append(rdf_interp_temp)
+            rdf_list.append(rdf_temp)
+
+        # RDF and RDF_interp need different for-loops since they use diff # bins
+        # Normal rdf
+        cwd = "/home/gn/Code/Python/MD-Simulation-Data-Analysis"
+        f = open(f"{cwd}/intersect_rho_{rho}_T_{t}_A_{par_a}.log", "w")
+        f.write("r\tstdev\n")
+        for i in range(len(rdf_list[0])):
+            # Define and clear list per iteration
+            values = []
+            for n in range(len(rdf_list)):
+                # Pass the values of the same i to a list
+                values.append(rdf_list[n][i])
+            # Calculate stdev and store
+            f.write(f"{r[i]}\t{stat.pstdev(values)}\n")
+        f.close()
+
+        f = open(f"{cwd}/intersect_interpolated_rho_{rho}_T_{t}_A_{par_a}.log", "w")
+        f.write("r\tstdev\n")
+        for i in range(len(rdf_interp_list[0])):
+            # Define and clear list per iteration
+            values = []
+            for n in range(len(rdf_interp_list)):
+                # Pass the values of the same i to a list
+                values.append(rdf_interp_list[n][i])
+            # Calculate stdev and store
+            f.write(f"{r_interp[i]}\t{stat.pstdev(values)}\n")
+        f.close()
+
+
+
 
         # Loop through the container of the RDFs to find intersection points
 
