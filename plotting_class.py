@@ -839,7 +839,7 @@ class FilePlotting:
             f.write(f"{r[i]}\t{stat.pstdev(values)}\n")
         f.close()
 
-        f = open(f"{cwd}/intersect_interpolated_rho_{rho}_T_{t}_A_{par_a}.log", "w")
+        f = open(f"{cwd}/logs/intersect_interpolated_rho_{rho}_T_{t}_A_{par_a}.log", "w")
         f.write("r\tstdev\n")
         for i in range(len(rdf_interp_list[0])):
             # Define and clear list per iteration
