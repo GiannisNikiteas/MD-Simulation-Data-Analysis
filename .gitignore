@@ -1,4 +1,4 @@
-.idea/
+*.idea/
 .idea/dictionaries/gn.xml
 .pytest_cache/README.md
 .pytest_cache/v/cache/nodeids
@@ -7,4 +7,5 @@ logs/*
 *.log
 .idea/*
 *.xml
-
+.vscode/
+__pycache__/
