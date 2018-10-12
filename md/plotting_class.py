@@ -16,7 +16,7 @@ class FilePlotting:
 
     def __init__(self, __step, __particles):
         self.step_str = str(__step)
-        self.particles_str = str(__particles)
+        self.p_str = str(__particles)
         self.rho_str = None
         self.t_str = None
         self.n_str = None
@@ -46,7 +46,7 @@ class FilePlotting:
         :param a:   softness parameter
         :return: string with file identifier
         """
-        p_str = self.particles_str
+        p_str = self.p_str
         self.rho_str = "{:.4f}".format(rho)
         self.t_str = "{:.4f}".format(t)
         self.n_str = str(n)
@@ -263,12 +263,12 @@ class FilePlotting:
 
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = "RDF" + file_id + ".txt"
+        data = f"RDF{file_id}.txt"
         num_lines = sum(1 for line in open(data))
         rdf = np.loadtxt(data, delimiter="\t", usecols=1, comments="#")
 
         # Number of particles, Number of bins
-        particles, bins = int(self.particles_str), 500
+        particles, bins = int(self.p_str), 500
         # Cut off radius
         rg = 3.0   # ((particles / rho) ** (1. / 3.)) / 2.
         dr = rg / bins
@@ -775,7 +775,7 @@ class FilePlotting:
         rdf = np.loadtxt(data, delimiter="\t", usecols=1, comments="#")
 
         # Number of particles, Number of bins
-        particles, bins = int(self.particles_str), 500
+        particles, bins = int(self.p_str), 500
         # Cut off radius
         rg = 3.0
         self.dr = rg / bins
