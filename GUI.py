@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import matplotlib.pyplot as plt
 import os
-from plotting_class import FilePlotting
+from md_stat.plotting_class import FilePlotting
 
 LARGE_FONT = ("Verdana", 10)
 

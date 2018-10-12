@@ -1,4 +1,4 @@
-from plotting_class import *
+from md_stat.plotting_class import *
 import os
 
 os.chdir('/home/gn/Desktop/test_data/')
