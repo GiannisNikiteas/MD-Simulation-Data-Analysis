@@ -5,57 +5,16 @@ from scipy import interpolate
 import matplotlib.pyplot as plt
 import statistics as stat
 from mpl_toolkits.mplot3d import Axes3D
-#
-# class FileNaming:
-#     def __init__(self, step, particles):
-#         self.step_str = str(step)
-#         self.p_str = str(particles)
-#         self.rho_str = None
-#         self.t_str = None
-#         self.n_str = None
-#         self.alpha = None
-#         self.a_str = None
-#
-#     def file_searcher(self, rho, t, n, alpha=None):
-#         self.rho_str = "{:.4f}".format(rho)
-#         self.t_str = "{:.4f}".format(t)
-#         self.n_str = str(n)
-#         self.alpha = alpha
-#         a = None
-#         if self.alpha is not None:
-#             self.a_str = "{:.5f}".format(self.alpha)
-#             a = '_A_' + self.a_str
-#         else:
-#             self.a_str = ""
-#             a = self.a_str
-#
-#         name_id = f"_step_{self.step_str}_particles_{self.p_str}_rho_{self.rho_str}_T_{self.t_str}_n_{self.n_str}{a}"
-#         return name_id
 
 
-class StatQ:
-
-    def __init__(self, __step, __particles):
-        self.step_str = str(__step)
-        self.p_str = str(__particles)
+class FileNaming(object):
+    def __init__(self, steps, particles):
+        self.steps_str = str(steps)
+        self.p_str = str(particles)
         self.rho_str = None
         self.t_str = None
         self.n_str = None
         self.a_str = None
-        self.dif_coef = np.array([])
-        self.reduced_dif_coef = np.array([])
-        self.dif_err = np.array([])
-        self.reduced_dif_err = np.array([])
-        self.dif_y_int = np.array([])
-        self.reduced_dif_y_int = np.array([])
-        self.line_style = ['solid', 'dashed', 'dotted', 'dashdot']
-        self.interpolated_data = []
-        self.dr = None
-        # This is an iterator for the color array
-        self.p, self.c = 0, 0
-        self.j = 0  # stride for MSD
-        self.v = 0  # index for MSD
-        self.line_it = 0    # Index iterator for line styles
 
     def file_searcher(self, rho, t, n, alpha=None):
         """
@@ -77,8 +36,28 @@ class StatQ:
             self.a_str = ""
             a = self.a_str
 
-        name_id = f"_step_{self.step_str}_particles_{self.p_str}_rho_{self.rho_str}_T_{self.t_str}_n_{self.n_str}{a}"
+        name_id = f"_step_{self.steps_str}_particles_{self.p_str}_rho_{self.rho_str}_T_{self.t_str}_n_{self.n_str}{a}"
         return name_id
+
+
+class StatQ(FileNaming):
+
+    def __init__(self, steps, particles):
+        super().__init__(steps, particles)
+        self.dif_coef = np.array([])
+        self.reduced_dif_coef = np.array([])
+        self.dif_err = np.array([])
+        self.reduced_dif_err = np.array([])
+        self.dif_y_int = np.array([])
+        self.reduced_dif_y_int = np.array([])
+        self.line_style = ['solid', 'dashed', 'dotted', 'dashdot']
+        self.interpolated_data = []
+        self.dr = None
+        # This is an iterator for the color array
+        self.p, self.c = 0, 0
+        self.j = 0  # stride for MSD
+        self.v = 0  # index for MSD
+        self.line_it = 0    # Index iterator for line styles
 
     # Radial Distribution Function
     def rdf(self, rho, t, power, par_a, iso_scale=False, show_iso=False):
@@ -107,7 +86,7 @@ class StatQ:
         # Number of particles, Number of bins
         particles, bins = int(self.p_str), 500
         # Cut off radius
-        rg = 3.0   # ((particles / rho) ** (1. / 3.)) / 2.
+        rg = 3.0
         dr = rg / bins
 
         # Initial normalisation factor of
@@ -137,11 +116,13 @@ class StatQ:
         # Plotting isosbestic point
         max_scaling = np.max(rdf)  # Scaling the ymax
         if show_iso is True:    # Show isosbestic point
-            iso = np.sqrt(1 - par_a ** 2)   # TODO: this is not correct, missing a factor probably, revise theory!
+            # TODO: this is not correct, missing a factor probably, revise theory!
+            iso = np.sqrt(1 - par_a ** 2)
             # iso = np.sqrt(rho ** (2./3) - a_tilde ** 2)   # This is probably wrong
             plt.plot([iso, iso], [0, max_scaling + 0.1], '--', color='red')
 
-        name = "rho: " + self.rho_str + " T: " + self.t_str + " n: " + self.n_str + " A: " + self.a_str
+        name = "rho: " + self.rho_str + " T: " + self.t_str + \
+            " n: " + self.n_str + " A: " + self.a_str
         plt.plot(r, rdf, '-o', markersize=4, label=name)
 
         # Plot labels
@@ -174,7 +155,8 @@ class StatQ:
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Data" + file_id + ".txt"
 
-        cr = np.loadtxt(data, usecols=8, delimiter='\t', unpack=True, comments='#')
+        cr = np.loadtxt(data, usecols=8, delimiter='\t',
+                        unpack=True, comments='#')
 
         num_lines = 0
         for line in open(data):
@@ -221,7 +203,8 @@ class StatQ:
         file_id = self.file_searcher(rho, t, power, par_a)
         data = f"Data{file_id}.txt"
 
-        rho_list, msd_data = np.loadtxt(data, usecols=(1, 7), delimiter='\t', unpack=True)
+        rho_list, msd_data = np.loadtxt(
+            data, usecols=(1, 7), delimiter='\t', unpack=True)
 
         num_lines = 0
         for line in open(data):
@@ -237,14 +220,17 @@ class StatQ:
         if par_a >= 0:
             x_sliced = x[step:]
             msd_sliced = msd_data[step:]
-            gradient, intercept, r_value, p_value, std_err = stats.linregress(x_sliced, msd_sliced)
+            gradient, intercept, r_value, p_value, std_err = stats.linregress(
+                x_sliced, msd_sliced)
 
             self.reduced_dif_coef = np.append(self.reduced_dif_coef, gradient)
             self.reduced_dif_err = np.append(self.reduced_dif_err, std_err)
-            self.reduced_dif_y_int = np.append(self.reduced_dif_y_int, intercept)
+            self.reduced_dif_y_int = np.append(
+                self.reduced_dif_y_int, intercept)
 
         # Regular coefs are calculated independent of the if loop
-        gradient, intercept, r_value, p_value, std_err = stats.linregress(x, msd_data)
+        gradient, intercept, r_value, p_value, std_err = stats.linregress(
+            x, msd_data)
         self.dif_coef = np.append(self.dif_coef, gradient)
         self.dif_err = np.append(self.dif_err, std_err)
         self.dif_y_int = np.append(self.dif_y_int, intercept)
@@ -291,12 +277,160 @@ class StatQ:
         plt.ylabel(r"$D$", fontsize=16)
         plt.legend(loc="best", fancybox=True, ncol=2)
 
-        self.dif_coef, self.dif_err, self.dif_y_int = np.array([]), np.array([]), np.array([])
-        self.reduced_dif_coef, self.reduced_dif_err, self.reduced_dif_y_int = np.array([]), np.array([]), np.array([])
+        self.dif_coef, self.dif_err, self.dif_y_int = np.array(
+            []), np.array([]), np.array([])
+        self.reduced_dif_coef, self.reduced_dif_err, self.reduced_dif_y_int = np.array(
+            []), np.array([]), np.array([])
         plt.ylim(ymin=0)
         plt.xlim(xmin=0)
         self.j += 15
         self.v += 1
+
+
+class StateProperties:
+    def __init__(self, __step, __particles):
+        self.step_str = str(__step)
+        self.p_str = str(__particles)
+        self.rho_str = None
+        self.t_str = None
+        self.n_str = None
+        self.a_str = None
+        self.dif_coef = np.array([])
+        self.reduced_dif_coef = np.array([])
+        self.dif_err = np.array([])
+        self.reduced_dif_err = np.array([])
+        self.dif_y_int = np.array([])
+        self.reduced_dif_y_int = np.array([])
+        self.line_style = ['solid', 'dashed', 'dotted',
+                           'dashdot']  # TODO: Fix with itertools
+        # TODO: this is a butcher's approach to solving the problem
+        self.interpolated_data = []
+        self.dr = None
+        # TODO: get rid of all these with itertools, This is python not C++
+        # This is an iterator for the color array
+        self.p, self.c = 0, 0
+        self.j = 0  # stride for MSD
+        self.v = 0  # index for MSD
+        self.line_it = 0    # Index iterator for line styles
+
+    def file_searcher(self, rho, t, n, a=None):
+        """
+        Constructs the file signature of the MD simulation in order for the information to be read
+        :param rho: density
+        :param t:   temperature
+        :param n:   potential strength
+        :param a:   softness parameter
+        :return: string with file identifier
+        """
+        p_str = self.p_str
+        self.rho_str = "{:.4f}".format(rho)
+        self.t_str = "{:.4f}".format(t)
+        self.n_str = str(n)
+        alpha = None
+
+        if a is not None:
+            self.a_str = "{:.5f}".format(a)
+            alpha = '_A_' + self.a_str
+        else:
+            self.a_str = ""
+            alpha = self.a_str
+
+        name_id = '_step_' + self.step_str + '_particles_' + p_str + '_rho_' + \
+                  self.rho_str + '_T_' + self.t_str + '_n_' + self.n_str + alpha
+        return name_id
+
+    def energy_plots(self, rho, t, power, par_a):
+        """
+        Creates a figure where the average kinetic, potential and total energy are displayed.
+        Separately and in a combined graph.
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :return: Nothing. Simply adds a plot on the corresponding canvas
+        """
+        file_id = self.file_searcher(rho, t, power, par_a)
+        data = "Data" + file_id + ".txt"
+
+        num_lines = 0
+        # Measuring the line number in a file ignoring comments
+        for line in open(data):
+            if line.startswith('#'):
+                continue
+            num_lines += 1
+
+        pot_en, kin_en = np.loadtxt(data, usecols=(
+            3, 4), delimiter='\t', comments='#', unpack=True)
+        tot_en = pot_en + kin_en
+        #  Plots the Energies
+        step = 0.005
+        time = num_lines * step
+        x = np.linspace(0, time, num_lines)
+        fig = plt.figure('Energy Plots')
+
+        kin_f = plt.subplot2grid((3, 2), (0, 0), colspan=1)
+        pot_f = plt.subplot2grid((3, 2), (1, 0), colspan=1)
+        tot_f = plt.subplot2grid((3, 2), (2, 0), colspan=1)
+        all_f = plt.subplot2grid((3, 2), (0, 1), rowspan=3)
+
+        # k, u, t = kin_en[500], pot_en[500], tot_en[500]
+        kin_f.plot(x, kin_en, 'r')
+        kin_f.locator_params(axis='y', nbins=4), kin_f.set_ylim(ymax=4)
+        pot_f.plot(x, pot_en, 'g')
+        pot_f.locator_params(axis='y', nbins=3)
+        pot_f.set_ylabel("Energy units", size=16)
+        tot_f.plot(x, tot_en, 'b')
+        tot_f.locator_params(axis='y', nbins=4)
+        tot_f.set_ylim(ymax=6)
+
+        # x_r = time / 2 - time / 4
+        # Kin.set_title('Individual Plots n = %d' %power, fontsize=17)
+        kin_f.set_title('Individual Plots', fontsize=17)
+        all_f.set_title('Energy Contributions', fontsize=17)
+        all_f.set_xlabel(r"Time $t$", fontsize=16)
+
+        tot_f.set_xlabel(r"Time $t$", fontsize=16)
+        fig.subplots_adjust(hspace=0)
+
+        # Tick correction
+        for ax in [kin_f, pot_f]:
+            plt.setp(ax.get_xticklabels(), visible=False)
+            # The y-ticks will overlap with "hspace=0", so we'll hide the bottom tick
+            ax.set_yticks(ax.get_yticks()[1:])
+
+        all_f.plot(x, kin_en, 'r', x, pot_en, 'g', x, tot_en, 'b')
+        all_f.set_ylim(ymax=5)
+
+    def potential_data(self, rho, t, power, par_a):
+        """
+        Creates plots for the visualisation of the average potential energy of the fluid.
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :return: Nothing. Simply adds a plot on the corresponding canvas
+        """
+        file_id = self.file_searcher(rho, t, power, par_a)
+        data = "Data" + file_id + ".txt"
+
+        num_lines = 0
+        for line in open(data):
+            if line.startswith('#'):
+                continue
+            num_lines += 1
+
+        rho_list, u = np.loadtxt(data, usecols=(
+            1, 3), delimiter='\t', comments='#', unpack=True)
+
+        #  Plots the Energies
+        name = "rho: " + self.rho_str + "T: " + \
+               self.t_str + "n: " + self.n_str + "A: " + self.a_str
+        step = 0.005
+        time = num_lines * step
+        x = np.linspace(0, time, num_lines)
+        plt.figure('Potential Plots of Data')
+        plt.plot(rho_list, u, label=name)
+        plt.legend(loc='best', fancybox=True)
 
 
 if __name__ == "__main__":
