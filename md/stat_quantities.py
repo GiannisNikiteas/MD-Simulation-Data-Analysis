@@ -121,6 +121,8 @@ class StatQ(FileNaming):
         plt.xlim(left=0, right=3)
         plt.ylim(bottom=0, top=max_scaling + 0.1)
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
+        print("@ index: ", np.argmax(rdf), " value: ", max(rdf))
+
         self.c += 1
 
         # return the plotting lists
@@ -221,7 +223,6 @@ class StatQ(FileNaming):
         plt.xlabel(r"$t$", fontsize=16)
         plt.ylabel(r"$MSD$", fontsize=16)
         plt.legend(loc="best", fancybox=True)
-        print("@ index: ", np.argmax(msd_data), " value: ", max(msd_data))
 
         return msd_data
 
@@ -363,12 +364,13 @@ if __name__ == "__main__":
     import os
 
     os.chdir("/home/gn/Desktop/test_data")
-    obj = StatQ(10000, 1000)
+
+    obj = StatQ(15000, 1000)
     n = [6, 8, 10, 12]
     a = [0, 0.25, 0.50, 0.75, 0.8, 0.90, 1.00, 1.1,
          1.25, 1.50, 1.75, 2.00, 2.25, 2.50, 4.00]
     for i in n:
-        obj.diffusion_plot(0.5, 0.5, i, a)
+        obj.rdf(0.5, 0.5, i, 0)
 
         # obj.msd(0.5, 0.5, 12, i)
         # obj.vaf(0.5, 0.5, 12, i)
