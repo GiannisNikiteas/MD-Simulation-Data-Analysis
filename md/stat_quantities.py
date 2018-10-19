@@ -2,7 +2,6 @@ import numpy as np
 import scipy.stats as stats
 from scipy import interpolate
 import matplotlib.pyplot as plt
-import statistics as stat
 
 
 class FileNaming(object):
@@ -120,8 +119,6 @@ class StatQ(FileNaming):
         plt.ylim(bottom=0, top=max_scaling + 0.1)
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
         print("@ index: ", np.argmax(rdf), " value: ", max(rdf))
-
-        self.c += 1
 
         # return the plotting lists
         return r, rdf
@@ -329,7 +326,7 @@ class StatQ(FileNaming):
         max_scaling = np.max(rdf)  # Scaling the plot to ymax
 
         name = "rho: " + self.rho_str + " T: " + self.t_str + \
-            " n: " + self.n_str + " A: " + self.a_str
+               " n: " + self.n_str + " A: " + self.a_str
 
         # Make and interpolating function
         f = interpolate.interp1d(r, rdf, kind='linear')
@@ -343,7 +340,7 @@ class StatQ(FileNaming):
         self.interpolated_data.append(rdf_interp)
         # end ????
         plt.figure('Interpolated RDF')
-        plt.plot(r_interp, rdf_interp, '-o', label='interpolation '+name)
+        plt.plot(r_interp, rdf_interp, '-o', label='interpolation ' + name)
         plt.plot([0, r[-1]], [1, 1], '--', color='black', linewidth=0.5)
         # Plot limits and legends
         plt.xlim(xmin=0, xmax=3)
@@ -364,10 +361,10 @@ if __name__ == "__main__":
     n = [6, 8, 10, 12]
     a = [0, 0.25, 0.50, 0.75, 0.8, 0.90, 1.00, 1.1,
          1.25, 1.50, 1.75, 2.00, 2.25, 2.50, 4.00]
-    for i in n:
-        obj.rdf(0.5, 0.5, i, 0)
+    for j in a:
+        for i in n:
+            obj.rdf(0.5, 0.5, i, j)
+            obj.msd(0.5, 0.5, i, j)
+            obj.vaf(0.5, 0.5, i, j)
 
-        # obj.msd(0.5, 0.5, 12, i)
-        # obj.vaf(0.5, 0.5, 12, i)
-
-    plt.show()
+        plt.show()
