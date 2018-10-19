@@ -1,10 +1,8 @@
 import numpy as np
-import matplotlib.cm as cm
 import scipy.stats as stats
 from scipy import interpolate
 import matplotlib.pyplot as plt
 import statistics as stat
-from mpl_toolkits.mplot3d import Axes3D
 
 
 class FileNaming(object):
@@ -257,19 +255,10 @@ class StatQ(FileNaming):
         self.j += 15
         self.v += 1
 
-
-class StateProperties(FileNaming):
-    def __init__(self, step, particles):
-        super().__init__(step, particles)
-        self.line_style = ['solid', 'dashed', 'dotted',
-                           'dashdot']  # TODO: Fix with itertools
-        self.p, self.c = 0, 0
-        self.line_it = 0  # Index iterator for line styles
-
-    def energy_plots(self, rho, t, power, par_a):
+    def vel_dist(self, rho, t, power, par_a):
         """
-        Creates a figure where the average kinetic, potential and total energy are displayed.
-        Separately and in a combined graph.
+        Plots the velocity distributions for the X, Y, Z and the combined velocity vector
+        for the last savec position of the fluid
         :param rho: Density
         :param t: Temperature
         :param power: Pair potential strength
@@ -277,87 +266,93 @@ class StateProperties(FileNaming):
         :return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = f"Data{file_id}.txt"
+        data = "Positions_Velocities" + file_id + ".txt"
+        name = "n: " + self.n_str + " A: " + self.a_str
+        vx, vy, vz = np.loadtxt(data,
+                                usecols=(3, 4, 5),
+                                delimiter='\t',
+                                comments='#',
+                                unpack=True)
+        v = np.sqrt(np.square(vx) + np.square(vy) + np.square(vz))
 
-        num_lines = 0
-        # Measuring the line number in a file ignoring comments
-        for line in open(data):
-            if line.startswith('#'):
-                continue
-            num_lines += 1
+        # n, bins, patches = plt.hist(v, 100, normed=1, label=name)
+        xmin, xmax = 0, max(v) + 1
+        lnspc = np.linspace(xmin, xmax, len(v))
+        # m, var, skew, kurt = stats.maxwell.stats(moments='mvsk')
+        mean, std = stats.maxwell.fit(v, loc=0, scale=1)
+        pdf_mb = stats.maxwell.pdf(lnspc, mean, std)
 
-        pot_en, kin_en = np.loadtxt(data, usecols=(
-            3, 4), delimiter='\t', comments='#', unpack=True)
-        tot_en = pot_en + kin_en
-        #  Plots the Energies
-        step = 0.005
-        time = num_lines * step
-        x = np.linspace(0, time, num_lines)
-        fig = plt.figure('Energy Plots')
+        fig = plt.figure('Velocity Dist Vx, Vy, Vz, V')
 
-        kin_f = plt.subplot2grid((3, 2), (0, 0), colspan=1)
-        pot_f = plt.subplot2grid((3, 2), (1, 0), colspan=1)
-        tot_f = plt.subplot2grid((3, 2), (2, 0), colspan=1)
-        all_f = plt.subplot2grid((3, 2), (0, 1), rowspan=3)
+        vx_plot = plt.subplot2grid((2, 3), (0, 0), colspan=1)
+        vy_plot = plt.subplot2grid((2, 3), (0, 1), colspan=1)
+        vz_plot = plt.subplot2grid((2, 3), (0, 2), colspan=1)
+        v_plot = plt.subplot2grid((2, 3), (1, 0), colspan=3)
 
-        # k, u, t = kin_en[500], pot_en[500], tot_en[500]
-        kin_f.plot(x, kin_en, 'r')
-        kin_f.locator_params(axis='y', nbins=4), kin_f.set_ylim(ymax=4)
-        pot_f.plot(x, pot_en, 'g')
-        pot_f.locator_params(axis='y', nbins=3)
-        pot_f.set_ylabel("Energy units", size=16)
-        tot_f.plot(x, tot_en, 'b')
-        tot_f.locator_params(axis='y', nbins=4)
-        tot_f.set_ylim(ymax=6)
+        n, bins, patches = vx_plot.hist(vx, 150, density=1, label='vx')
+        n, bins, patches = vy_plot.hist(vy, 150, density=1, label='vy')
+        n, bins, patches = vz_plot.hist(vz, 150, density=1, label='vz')
+        n, bins, patches = v_plot.hist(v, 150, density=1, label='v')
 
-        # x_r = time / 2 - time / 4
-        # Kin.set_title('Individual Plots n = %d' %power, fontsize=17)
-        kin_f.set_title('Individual Plots', fontsize=17)
-        all_f.set_title('Energy Contributions', fontsize=17)
-        all_f.set_xlabel(r"Time $t$", fontsize=16)
-
-        tot_f.set_xlabel(r"Time $t$", fontsize=16)
-        fig.subplots_adjust(hspace=0)
-
-        # Tick correction
-        for ax in [kin_f, pot_f]:
-            plt.setp(ax.get_xticklabels(), visible=False)
-            # The y-ticks will overlap with "hspace=0", so we'll hide the bottom tick
-            ax.set_yticks(ax.get_yticks()[1:])
-
-        all_f.plot(x, kin_en, 'r', x, pot_en, 'g', x, tot_en, 'b')
-        all_f.set_ylim(ymax=5)
-
-    def potential_data(self, rho, t, power, par_a):
-        """
-        Creates plots for the visualisation of the average potential energy of the fluid.
-        :param rho: Density
-        :param t: Temperature
-        :param power: Pair potential strength
-        :param par_a: Softening parameter
-        :return: Nothing. Simply adds a plot on the corresponding canvas
-        """
-        file_id = self.file_searcher(rho, t, power, par_a)
-        data = "Data" + file_id + ".txt"
-
-        num_lines = 0
-        for line in open(data):
-            if line.startswith('#'):
-                continue
-            num_lines += 1
-
-        rho_list, u = np.loadtxt(data, usecols=(
-            1, 3), delimiter='\t', comments='#', unpack=True)
-
-        #  Plots the Energies
-        name = "rho: " + self.rho_str + "T: " + \
-               self.t_str + "n: " + self.n_str + "A: " + self.a_str
-        step = 0.005
-        time = num_lines * step
-        x = np.linspace(0, time, num_lines)
-        plt.figure('Potential Plots of Data')
-        plt.plot(rho_list, u, label=name)
+        plt.plot(lnspc, pdf_mb, label='Theory')
+        plt.xlim(xmin=0)
+        plt.title(self.n_str + '~' + self.a_str)
         plt.legend(loc='best', fancybox=True)
+
+    def rdf_interpolate(self, rho, t, power, par_a):
+        """
+        It interpolates linearly between the data provided for the RDF which in turn
+        makes possible to find the intersection point between the curves.
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :return: A numpy.array of the interpolated RDF data
+        """
+        file_id = self.file_searcher(rho, t, power, par_a)
+        data = "RDF" + file_id + ".txt"
+        # Measure the number of lines in the file in order to normalise
+        # the distance r to the correct units
+        num_lines = sum(1 for line in open(data))
+        # Load the RDF data
+        rdf = np.loadtxt(data, delimiter="\t", usecols=1, comments="#")
+
+        # Number of particles, Number of bins
+        particles, bins = int(self.p_str), 500
+        # Cut off radius
+        rg = 3.0
+        self.dr = rg / bins
+
+        num_lines -= 2
+        r = np.linspace(1, num_lines, num_lines)
+        r = np.multiply(r, self.dr)
+        max_scaling = np.max(rdf)  # Scaling the plot to ymax
+
+        name = "rho: " + self.rho_str + " T: " + self.t_str + \
+            " n: " + self.n_str + " A: " + self.a_str
+
+        # Make and interpolating function
+        f = interpolate.interp1d(r, rdf, kind='linear')
+        # Create a more accurate radius array
+        r_interp = np.linspace(r[0], r[-1], 1000)
+
+        # Use the interpolation function
+        rdf_interp = f(r_interp)
+        # begin ????
+        self.dr = rg / 1000
+        self.interpolated_data.append(rdf_interp)
+        # end ????
+        plt.figure('Interpolated RDF')
+        plt.plot(r_interp, rdf_interp, '-o', label='interpolation '+name)
+        plt.plot([0, r[-1]], [1, 1], '--', color='black', linewidth=0.5)
+        # Plot limits and legends
+        plt.xlim(xmin=0, xmax=3)
+        plt.ylim(ymin=0, ymax=max_scaling + 0.1)
+        # Plot labels
+        plt.xlabel(r"$r$", fontsize=16)
+        plt.ylabel(r"$g(r)$", fontsize=16)
+        plt.legend(loc="best", fancybox=True, prop={'size': 8})
+        return r_interp, rdf_interp
 
 
 if __name__ == "__main__":
