@@ -41,6 +41,7 @@ class StatQ(FileNaming):
 
     def __init__(self, steps, particles):
         super().__init__(steps, particles)
+
         self.dif_coef = np.array([])
         self.dif_err = np.array([])
         self.dif_y_int = np.array([])
@@ -52,6 +53,14 @@ class StatQ(FileNaming):
         self.j = 0  # stride for MSD
         self.v = 0  # index for MSD
         self.line_it = 0  # Index iterator for line styles
+
+        # RDF shared variables
+        self.r = []         # container for the rdf-x data
+        self.rdf_data = []  # container for the rdf y-data
+        self.num_lines_rdf = 0  # number of lines filled with data in the rdf file
+        self.rg = 3.0   # cut-off radius
+        self.dr = 0     # distance increment in the radius
+        self.iso = 0    # x-location for the theoretical isosbestic points
 
     # Radial Distribution Function
     def rdf(self, rho, t, power, par_a, iso_scale=False, show_iso=False):
@@ -74,54 +83,62 @@ class StatQ(FileNaming):
         """
         file_id = self.file_searcher(rho, t, power, par_a)
         data = f"RDF{file_id}.txt"
-        num_lines = sum(1 for line in open(data))
-        rdf = np.loadtxt(data, delimiter="\t", usecols=1, comments="#")
+        self.num_lines_rdf = sum(1 for line in open(data))
+        self.rdf_data = np.loadtxt(
+            data, delimiter="\t", usecols=1, comments="#")
 
         # Number of particles, Number of bins
         particles, bins = int(self.p_str), 500
         # Cut off radius
-        rg = 3.0
-        dr = rg / bins
+        self.rg = 3.0
+        self.dr = self.rg / bins
 
         # r range, r=0 is intentionally neglected due to division by 0
-        # num_lines-1 because one of them is a comment
-        num_lines -= 2
-        r = np.linspace(1, num_lines, num_lines)
-        r = np.multiply(r, dr)
-        a_tilde = par_a * rho ** (1. / 3.)  # Scale a
+        # num_lines-2 because of comments and headers
+        self.num_lines_rdf -= 2
+        self.r = np.linspace(1, self.num_lines_rdf, self.num_lines_rdf)
+        self.r = np.multiply(self.r, self.dr)
 
         # Isomorphic scaling of r for the isomorph plane
         if iso_scale is True:
-            r = np.multiply(r, rho ** (1. / 3.))  # Scale r
-
-        plt.figure('Radial Distribution Function')
+            self.r = np.multiply(self.r, rho ** (1. / 3.))  # Scale r
 
         # Plotting isosbestic point
-        max_scaling = np.max(rdf)  # Scaling the ymax
         if show_iso is True:  # Show isosbestic point
             # TODO: this is not correct, missing a factor probably, revise theory!
-            iso = np.sqrt(1 - par_a ** 2)
-            # iso = np.sqrt(rho ** (2./3) - a_tilde ** 2)   # This is probably wrong
-            plt.plot([iso, iso], [0, max_scaling + 0.1], '--', color='red')
+            self.iso = np.sqrt(1 - par_a ** 2)
 
+        # return the plotting lists
+        return self.r, self.rdf_data
+
+    def rdf_plot(self, rho, t, power, par_a, iso_scale=False, show_iso=False):
+        self.rdf(rho, t, power, par_a, iso_scale, show_iso)
+        plt.figure('Radial Distribution Function')
+
+        max_scaling = np.max(self.rdf_data)  # Scaling the ymax
+
+        # Plotting isosbestic location of points
+        if show_iso is True:
+            plt.plot([self.iso, self.iso], [0, max_scaling + 0.1], '--', color='red')
+
+        # Naming the curves
         name = f"rho: {self.rho_str} T: {self.t_str} n: {self.n_str} A: {self.a_str}"
-        plt.plot(r, rdf, '-', markersize=4, label=name)
+
+        plt.plot(self.r, self.rdf_data, '-', markersize=4, label=name)
 
         # Plot labels
         plt.xlabel(r"$r$", fontsize=16)
         plt.ylabel(r"$g(r)$", fontsize=16)
-        # Plotting isosbestic location of points
 
         # Line through y = 1
-        plt.plot([0, r[-1]], [1, 1], '--', color='black', linewidth=0.5)
+        plt.plot([0, self.r[-1]], [1, 1], '--', color='black', linewidth=0.5)
+        
         # Plot limits and legends
-        plt.xlim(left=0, right=3)
+        plt.xlim(left=0, right=self.rg)
         plt.ylim(bottom=0, top=max_scaling + 0.1)
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
-        print("@ index: ", np.argmax(rdf), " value: ", max(rdf))
-
-        # return the plotting lists
-        return r, rdf
+        print("@ index: ", np.argmax(self.rdf_data),
+              " value: ", max(self.rdf_data))
 
     # Velocity Autocorrelation Function
     def vaf(self, rho, t, power, par_a):
@@ -169,7 +186,6 @@ class StatQ(FileNaming):
         plt.legend(loc="best", ncol=1)
 
     # Mean Square Displacement
-
     def msd(self, rho, t, power, par_a):
         """
         Creates a figure which depicts the Mean Square Displacement for our fluid.
@@ -296,7 +312,7 @@ class StatQ(FileNaming):
         plt.title(self.n_str + '~' + self.a_str)
         plt.legend(loc='best', fancybox=True)
 
-    def rdf_interpolate(self, rho, t, power, par_a):
+    def rdf_interpolate(self, rho, t, power, par_a, range_refinement=2000):
         """
         It interpolates linearly between the data provided for the RDF which in turn
         makes possible to find the intersection point between the curves.
@@ -320,6 +336,7 @@ class StatQ(FileNaming):
         rg = 3.0
         self.dr = rg / bins
 
+        # Ignoring the first 2 lines effectivelly
         num_lines -= 2
         r = np.linspace(1, num_lines, num_lines)
         r = np.multiply(r, self.dr)
@@ -330,26 +347,32 @@ class StatQ(FileNaming):
 
         # Make and interpolating function
         f = interpolate.interp1d(r, rdf, kind='linear')
+        # Number of interpolated bins
         # Create a more accurate radius array
-        r_interp = np.linspace(r[0], r[-1], 1000)
+        r_interp = np.linspace(r[0], r[-1], range_refinement)
 
         # Use the interpolation function
         rdf_interp = f(r_interp)
-        # begin ????
-        self.dr = rg / 1000
+
+        self.dr = rg / range_refinement
+        # Passing interpolated data to be stored later in file
         self.interpolated_data.append(rdf_interp)
-        # end ????
+
         plt.figure('Interpolated RDF')
         plt.plot(r_interp, rdf_interp, '-o', label='interpolation ' + name)
         plt.plot([0, r[-1]], [1, 1], '--', color='black', linewidth=0.5)
+
         # Plot limits and legends
-        plt.xlim(xmin=0, xmax=3)
-        plt.ylim(ymin=0, ymax=max_scaling + 0.1)
+        plt.xlim(left=0, right=3)
+        plt.ylim(bottom=0, top=max_scaling + 0.1)
+
         # Plot labels
         plt.xlabel(r"$r$", fontsize=16)
         plt.ylabel(r"$g(r)$", fontsize=16)
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
         return r_interp, rdf_interp
+
+    # def rdf_intersect(self, rho, t, power_list, par_a, range_refinement=2000, r_range=):
 
 
 if __name__ == "__main__":
@@ -361,10 +384,11 @@ if __name__ == "__main__":
     n = [6, 8, 10, 12]
     a = [0, 0.25, 0.50, 0.75, 0.8, 0.90, 1.00, 1.1,
          1.25, 1.50, 1.75, 2.00, 2.25, 2.50, 4.00]
-    for j in a:
-        for i in n:
-            obj.rdf(0.5, 0.5, i, j)
-            obj.msd(0.5, 0.5, i, j)
-            obj.vaf(0.5, 0.5, i, j)
+    for i in n:
+        obj.rdf_plot(0.5, 0.5, i, 0.25)
+        # Shows the interpolated data
+        # obj.rdf_interpolate(0.5, 0.5, i, 0.25)
+        # obj.msd(0.5, 0.5, i, 0.25)
+        # obj.vaf(0.5, 0.5, i, 0.25)
 
-        plt.show()
+    plt.show()
