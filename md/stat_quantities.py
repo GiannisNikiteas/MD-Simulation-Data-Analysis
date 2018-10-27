@@ -61,6 +61,9 @@ class StatQ(FileNaming):
         self.rg = 3.0   # cut-off radius
         self.dr = 0     # distance increment in the radius
         self.iso = 0    # x-location for the theoretical isosbestic points
+        # Containers for interpolated data
+        self.r_interp = []
+        self.rdf_interp = []
 
     # Radial Distribution Function
     def rdf(self, rho, t, power, par_a, iso_scale=False, show_iso=False):
@@ -322,45 +325,29 @@ class StatQ(FileNaming):
         :param par_a: Softening parameter
         :return: A numpy.array of the interpolated RDF data
         """
-        file_id = self.file_searcher(rho, t, power, par_a)
-        data = "RDF" + file_id + ".txt"
-        # Measure the number of lines in the file in order to normalise
-        # the distance r to the correct units
-        num_lines = sum(1 for line in open(data))
-        # Load the RDF data
-        rdf = np.loadtxt(data, delimiter="\t", usecols=1, comments="#")
-
-        # Number of particles, Number of bins
-        particles, bins = int(self.p_str), 500
-        # Cut off radius
-        rg = 3.0
-        self.dr = rg / bins
-
-        # Ignoring the first 2 lines effectivelly
-        num_lines -= 2
-        r = np.linspace(1, num_lines, num_lines)
-        r = np.multiply(r, self.dr)
-        max_scaling = np.max(rdf)  # Scaling the plot to ymax
+        self.rdf(rho, t, power, par_a)
+        max_scaling = np.max(self.rdf_data)  # Scaling the plot to ymax
 
         name = "rho: " + self.rho_str + " T: " + self.t_str + \
                " n: " + self.n_str + " A: " + self.a_str
 
         # Make and interpolating function
-        f = interpolate.interp1d(r, rdf, kind='linear')
+        f = interpolate.interp1d(self.r, self.rdf_data, kind='linear')
         # Number of interpolated bins
         # Create a more accurate radius array
-        r_interp = np.linspace(r[0], r[-1], range_refinement)
+        self.r_interp = np.linspace(self.r[0], self.r[-1], range_refinement)
 
         # Use the interpolation function
-        rdf_interp = f(r_interp)
+        self.rdf_interp = f(self.r_interp)
 
-        self.dr = rg / range_refinement
+        # Generating new separation unit distance for the x-axis
+        self.dr = self.rg / range_refinement
         # Passing interpolated data to be stored later in file
-        self.interpolated_data.append(rdf_interp)
+        self.interpolated_data.append(self.rdf_interp)
 
         plt.figure('Interpolated RDF')
-        plt.plot(r_interp, rdf_interp, '-o', label='interpolation ' + name)
-        plt.plot([0, r[-1]], [1, 1], '--', color='black', linewidth=0.5)
+        plt.plot(self.r_interp, self.rdf_interp, '-', label='interpolation ' + name)
+        plt.plot([0, self.r_interp[-1]], [1, 1], '--', color='black', linewidth=0.5)
 
         # Plot limits and legends
         plt.xlim(left=0, right=3)
@@ -370,7 +357,7 @@ class StatQ(FileNaming):
         plt.xlabel(r"$r$", fontsize=16)
         plt.ylabel(r"$g(r)$", fontsize=16)
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
-        return r_interp, rdf_interp
+        return self.r_interp, self.rdf_interp
 
     # def rdf_intersect(self, rho, t, power_list, par_a, range_refinement=2000, r_range=):
 
@@ -387,7 +374,7 @@ if __name__ == "__main__":
     for i in n:
         obj.rdf_plot(0.5, 0.5, i, 0.25)
         # Shows the interpolated data
-        # obj.rdf_interpolate(0.5, 0.5, i, 0.25)
+        obj.rdf_interpolate(0.5, 0.5, i, 0.25)
         # obj.msd(0.5, 0.5, i, 0.25)
         # obj.vaf(0.5, 0.5, i, 0.25)
 
