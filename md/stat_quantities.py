@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.stats as stats
 from scipy import interpolate
+from scipy.signal import argrelextrema
 import matplotlib.pyplot as plt
 
 
@@ -350,7 +351,7 @@ class StatQ(FileNaming):
         :return: A numpy.array of the interpolated RDF data
         """
         self.rdf(rho, t, power, par_a)
-
+        # TODO: Smooth the data with np.conolute before interpolating
         # Make and interpolating function
         f = interpolate.interp1d(self.r, self.rdf_data, kind='linear')
         # Number of interpolated bins
@@ -400,35 +401,64 @@ class StatQ(FileNaming):
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
 
     def rdf_intersect(self, rho, t, power_list, par_a, range_refinement=2000, r_lower=0, r_higher=-1, minima=10):
+
         # Regions of interest 530:830
         rdf_interp_list = []
         for n in power_list:
             # calls rdf internally, and initialises r_interp list
             self.rdf_interpolate(rho, t, n, par_a, range_refinement)
+
             # Selecting only the required range of interpolated rdf values
             sliced_rdf_data = self.rdf_interp[r_lower:r_higher]
 
             rdf_interp_list.append(sliced_rdf_data)
+
         # Transpose the array for easier file output
         rdf_interp_list = np.transpose(rdf_interp_list)
+
         # Calculate the standard deviation across n runs
         std_list = np.std(rdf_interp_list, axis=1)
         mean_list = np.mean(rdf_interp_list, axis=1)
-        # Find the index on the first few minima std values
+
+        # Find the index on the first few minima in std values
         idx_min = np.argpartition(std_list, minima)
 
         # Get the mean corresponding to the minimum indices of the array
         mean_scatter = mean_list[idx_min[:minima]]
+
         # Add the lower boundary that the std was taken from to correspond to the actual r index
         idx_min += r_lower
+
+        # Plotting the intersection results into the interpolated RDF canvas
         plt.figure('Interpolated RDF')
         # Get the r-values for the corresponding means
         r_data = [self.r_interp[index] for index in idx_min[:minima]]
+        # scatter_label = [f"x:{r_data[i]}, y:{mean_scatter[i]}" r]
         plt.scatter(r_data, mean_scatter, color='red', marker='x')
+
+        # Get the coordinates for the local maxima and minima in the provided range
+        x_max, y_max, x_min, y_min = self.find_local_min_max(
+            self.r_interp, self.rdf_interp)
+        plt.scatter(x_max, y_max, color='orange')
+        plt.scatter(x_min, y_min, color='green')
 
         # Plotting the data curves of the interpolated data
         for n in power_list:
             self.rdf_interpolate_plot(rho, t, n, par_a, range_refinement)
+
+    def find_local_min_max(self, x, y):
+        # Find the index of the local maxima and minima
+        # this index can then be used to find the x-y values of the points
+        idx_local_max = argrelextrema(y, np.greater)
+        idx_local_min = argrelextrema(y, np.less)
+
+        # Get the x-value for the local maxima and minima
+        x_local_max = x[idx_local_max[0]]
+        x_local_min = x[idx_local_min[0]]
+        y_local_max = y[idx_local_max[0]]
+        y_local_min = y[idx_local_min[0]]
+
+        return x_local_max, y_local_max, x_local_min, y_local_min
 
 
 if __name__ == "__main__":
