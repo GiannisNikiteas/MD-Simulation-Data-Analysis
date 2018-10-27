@@ -16,6 +16,8 @@ class FileNaming(object):
     def file_searcher(self, rho, t, n, alpha=None):
         """
         Constructs the file signature of the MD simulation in order for the information to be read
+
+
         :param rho: density
         :param t:   temperature
         :param n:   potential strength
@@ -115,6 +117,18 @@ class StatQ(FileNaming):
         return self.r, self.rdf_data
 
     def rdf_plot(self, rho, t, power, par_a, iso_scale=False, show_iso=False):
+        """
+        Generates a plot of the Radial Distribution Data after it calls the rdf method
+
+
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :param iso_scale: Optional, scales the values of r, the radius, based on the isosbestic model that
+                          has been created
+        :param show_iso: Optional, shows the location of the theoretical isosbestic point between different rdfs
+        """
         self.rdf(rho, t, power, par_a, iso_scale, show_iso)
         plt.figure('Radial Distribution Function')
 
@@ -122,7 +136,8 @@ class StatQ(FileNaming):
 
         # Plotting isosbestic location of points
         if show_iso is True:
-            plt.plot([self.iso, self.iso], [0, max_scaling + 0.1], '--', color='red')
+            plt.plot([self.iso, self.iso], [
+                     0, max_scaling + 0.1], '--', color='red')
 
         # Naming the curves
         name = f"rho: {self.rho_str} T: {self.t_str} n: {self.n_str} A: {self.a_str}"
@@ -135,7 +150,7 @@ class StatQ(FileNaming):
 
         # Line through y = 1
         plt.plot([0, self.r[-1]], [1, 1], '--', color='black', linewidth=0.5)
-        
+
         # Plot limits and legends
         plt.xlim(left=0, right=self.rg)
         plt.ylim(bottom=0, top=max_scaling + 0.1)
@@ -148,6 +163,8 @@ class StatQ(FileNaming):
         """
         Creates a figure for the Velocity Autocorrelation Function of the fluid, which illustrates
         if the fluid remains a coupled system through time (correlated) or it uncouples.
+
+
         :param rho: Density
         :param t: Temperature
         :param power: Pair potential strength
@@ -194,6 +211,8 @@ class StatQ(FileNaming):
         Creates a figure which depicts the Mean Square Displacement for our fluid.
         According to diffusion theory the slope of the MSD corresponds to the inverse of the
         diffusion coefficient
+
+
         :param rho: Density
         :param t: Temperature
         :param power: Pair potential strength
@@ -275,6 +294,8 @@ class StatQ(FileNaming):
         """
         Plots the velocity distributions for the X, Y, Z and the combined velocity vector
         for the last savec position of the fluid
+
+
         :param rho: Density
         :param t: Temperature
         :param power: Pair potential strength
@@ -319,17 +340,16 @@ class StatQ(FileNaming):
         """
         It interpolates linearly between the data provided for the RDF which in turn
         makes possible to find the intersection point between the curves.
+
+
         :param rho: Density
         :param t: Temperature
         :param power: Pair potential strength
         :param par_a: Softening parameter
+        :param range_refinement: The accuracy of the interpolated data
         :return: A numpy.array of the interpolated RDF data
         """
         self.rdf(rho, t, power, par_a)
-        max_scaling = np.max(self.rdf_data)  # Scaling the plot to ymax
-
-        name = "rho: " + self.rho_str + " T: " + self.t_str + \
-               " n: " + self.n_str + " A: " + self.a_str
 
         # Make and interpolating function
         f = interpolate.interp1d(self.r, self.rdf_data, kind='linear')
@@ -344,10 +364,31 @@ class StatQ(FileNaming):
         self.dr = self.rg / range_refinement
         # Passing interpolated data to be stored later in file
         self.interpolated_data.append(self.rdf_interp)
+        return self.r_interp, self.rdf_interp
+
+    def rdf_interpolate_plot(self, rho, t, power, par_a, range_refinement=2000):
+        """
+        Generates a plot of the interpolated data after it calls rdf_interpolate
+
+
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :param range_refinement: The accuracy of the interpolated data
+        """
+        self.rdf_interpolate(rho, t, power, par_a, range_refinement)
+
+        # Naming the curves
+        name = f"rho: {self.rho_str} T: {self.t_str} n: {self.n_str} A: {self.a_str}"
+        max_scaling = np.max(self.rdf_data)  # Scaling the plot to ymax
 
         plt.figure('Interpolated RDF')
-        plt.plot(self.r_interp, self.rdf_interp, '-', label='interpolation ' + name)
-        plt.plot([0, self.r_interp[-1]], [1, 1], '--', color='black', linewidth=0.5)
+
+        plt.plot(self.r_interp, self.rdf_interp,
+                 '-', label='interpolation ' + name)
+        plt.plot([0, self.r_interp[-1]], [1, 1],
+                 '--', color='black', linewidth=0.5)
 
         # Plot limits and legends
         plt.xlim(left=0, right=3)
@@ -357,9 +398,37 @@ class StatQ(FileNaming):
         plt.xlabel(r"$r$", fontsize=16)
         plt.ylabel(r"$g(r)$", fontsize=16)
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
-        return self.r_interp, self.rdf_interp
 
-    # def rdf_intersect(self, rho, t, power_list, par_a, range_refinement=2000, r_range=):
+    def rdf_intersect(self, rho, t, power_list, par_a, range_refinement=2000, r_lower=0, r_higher=-1, minima=10):
+        # Regions of interest 530:830
+        rdf_interp_list = []
+        for n in power_list:
+            # calls rdf internally, and initialises r_interp list
+            self.rdf_interpolate(rho, t, n, par_a, range_refinement)
+            # Selecting only the required range of interpolated rdf values
+            sliced_rdf_data = self.rdf_interp[r_lower:r_higher]
+
+            rdf_interp_list.append(sliced_rdf_data)
+        # Transpose the array for easier file output
+        rdf_interp_list = np.transpose(rdf_interp_list)
+        # Calculate the standard deviation across n runs
+        std_list = np.std(rdf_interp_list, axis=1)
+        mean_list = np.mean(rdf_interp_list, axis=1)
+        # Find the index on the first few minima std values
+        idx_min = np.argpartition(std_list, minima)
+
+        # Get the mean corresponding to the minimum indices of the array
+        mean_scatter = mean_list[idx_min[:minima]]
+        # Add the lower boundary that the std was taken from to correspond to the actual r index
+        idx_min += r_lower
+        plt.figure('Interpolated RDF')
+        # Get the r-values for the corresponding means
+        r_data = [self.r_interp[index] for index in idx_min[:minima]]
+        plt.scatter(r_data, mean_scatter, color='red', marker='x')
+
+        # Plotting the data curves of the interpolated data
+        for n in power_list:
+            self.rdf_interpolate_plot(rho, t, n, par_a, range_refinement)
 
 
 if __name__ == "__main__":
@@ -368,14 +437,17 @@ if __name__ == "__main__":
     os.chdir("/home/gn/Desktop/test_data")
 
     obj = StatQ(15000, 1000)
-    n = [6, 8, 10, 12]
+    n = [6, 7, 8, 9, 10]
     a = [0, 0.25, 0.50, 0.75, 0.8, 0.90, 1.00, 1.1,
          1.25, 1.50, 1.75, 2.00, 2.25, 2.50, 4.00]
-    for i in n:
-        obj.rdf_plot(0.5, 0.5, i, 0.25)
-        # Shows the interpolated data
-        obj.rdf_interpolate(0.5, 0.5, i, 0.25)
-        # obj.msd(0.5, 0.5, i, 0.25)
-        # obj.vaf(0.5, 0.5, i, 0.25)
+
+    obj.rdf_intersect(0.5, 0.5, n, 0, r_lower=580, r_higher=830, minima=1)
+
+    # for i in n:
+    # obj.rdf_plot(0.5, 0.5, i, 0.25)
+    # Shows the interpolated data
+    # obj.rdf_interpolate_plot(0.5, 0.5, i, 0.25)
+    # obj.msd(0.5, 0.5, i, 0.25)
+    # obj.vaf(0.5, 0.5, i, 0.25)
 
     plt.show()
