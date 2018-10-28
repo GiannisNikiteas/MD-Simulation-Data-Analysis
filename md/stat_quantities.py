@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.stats as stats
 from scipy import interpolate
-from scipy.signal import argrelextrema
+from scipy.signal import argrelextrema, butter, filtfilt
 import matplotlib.pyplot as plt
 
 
@@ -67,6 +67,7 @@ class StatQ(FileNaming):
         # Containers for interpolated data
         self.r_interp = []
         self.rdf_interp = []
+        self.rdf_interp_smooth = []
 
     # Radial Distribution Function
     def rdf(self, rho, t, power, par_a, iso_scale=False, show_iso=False):
@@ -339,7 +340,8 @@ class StatQ(FileNaming):
 
     def rdf_interpolate(self, rho, t, power, par_a, range_refinement=2000):
         """
-        It interpolates linearly between the data provided for the RDF which in turn
+        It smooths the data using a forward-backward low-pass filter.
+        Then it interpolates linearly between the data provided for the RDF which in turn
         makes possible to find the intersection point between the curves.
 
 
@@ -348,26 +350,35 @@ class StatQ(FileNaming):
         :param power: Pair potential strength
         :param par_a: Softening parameter
         :param range_refinement: The accuracy of the interpolated data
-        :return: A numpy.array of the interpolated RDF data
+        :return: 3 numpy.arrays of the interpolated and smoothed RDF data
         """
         self.rdf(rho, t, power, par_a)
-        # TODO: Smooth the data with np.conolute before interpolating
+        # Smooth the data before interpolating with a forward backward filter
+        # First create a lowpass butterworth filter
+        # TODO: fix the parameters for the filter
+        b, a = butter(3, 0.09)
+        rdf_smooth = filtfilt(b, a, self.rdf_data)
+
         # Make and interpolating function
         f = interpolate.interp1d(self.r, self.rdf_data, kind='linear')
-        # Number of interpolated bins
-        # Create a more accurate radius array
+        f_smooth = interpolate.interp1d(self.r, rdf_smooth)
+
+        # Create a radius array with increased precision (number of bins)
         self.r_interp = np.linspace(self.r[0], self.r[-1], range_refinement)
 
         # Use the interpolation function
         self.rdf_interp = f(self.r_interp)
+        self.rdf_interp_smooth = f_smooth(self.r_interp)
 
         # Generating new separation unit distance for the x-axis
         self.dr = self.rg / range_refinement
+
         # Passing interpolated data to be stored later in file
         self.interpolated_data.append(self.rdf_interp)
-        return self.r_interp, self.rdf_interp
+        return self.r_interp, self.rdf_interp, self.rdf_interp_smooth
 
-    def rdf_interpolate_plot(self, rho, t, power, par_a, range_refinement=2000):
+    def rdf_interpolate_plot(self, rho, t, power, par_a,
+                             range_refinement=2000):
         """
         Generates a plot of the interpolated data after it calls rdf_interpolate
 
@@ -400,53 +411,155 @@ class StatQ(FileNaming):
         plt.ylabel(r"$g(r)$", fontsize=16)
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
 
-    def rdf_intersect(self, rho, t, power_list, par_a, range_refinement=2000, r_lower=0, r_higher=-1, minima=10):
+    def rdf_interpolate_smooth_plot(self, rho, t, power, par_a,
+                                    range_refinement=2000):
+        """
+        Generates a plot of the smoothed and interpolated
+        data after it calls rdf_interpolate
 
-        # Regions of interest 530:830
+
+        :param rho: Density
+        :param t: Temperature
+        :param power: Pair potential strength
+        :param par_a: Softening parameter
+        :param range_refinement: The accuracy of the interpolated data
+        """
+        self.rdf_interpolate(rho, t, power, par_a, range_refinement)
+
+        # Naming the curves
+        name = f"rho: {self.rho_str} T: {self.t_str} n: {self.n_str} A: {self.a_str}"
+        max_scaling = np.max(self.rdf_data)  # Scaling the plot to ymax
+
+        plt.figure('Interpolated RDF')
+
+        plt.plot(self.r_interp, self.rdf_interp_smooth,
+                 '-.', label='smooth interp ' + name)
+        plt.plot([0, self.r_interp[-1]], [1, 1],
+                 '--', color='black', linewidth=0.5)
+
+        # Plot limits and legends
+        plt.xlim(left=0, right=3)
+        plt.ylim(bottom=0, top=max_scaling + 0.1)
+
+        # Plot labels
+        plt.xlabel(r"$r$", fontsize=16)
+        plt.ylabel(r"$g(r)$", fontsize=16)
+        plt.legend(loc="best", fancybox=True, prop={'size': 8})
+
+    def rdf_intersect(self, rho, t, power_list, par_a,
+                      range_refinement=2000, r_lower=0, r_higher=-1, intersections=1):
+        """
+        Finds the points of intersection in RDF functions by looping through multiple ns.
+        The RDF data are first smoothed with a forward-backward filter in order to reduce
+        the noise and then the data are then interpolated linearly.
+        An intersection between curves is quantified as the minimum in the standard
+        deviation at the same index gr[i] but for multiple curves. At an intersection,
+        the std is theoretically at a minimum.
+
+        The points of inflection are identified on the last curve passed on the method,
+        which in turn splits the RDF data into regions. In every region between a max-min
+        an intersection point is sought (although for some extreme cases that is not entirely true).
+
+        Worth remembering is that smoothing the data results into the introduction of unwanted
+        inflection points, neat neighbourhoods where the data do not fluctuate much.
+
+        # TODO: make the interpolation/smoothing act to all the non-zero values
+                pass arg ignore_zeroes=True and handle with if-statement
+
+
+        :param rho: Density
+        :param t: Temperature
+        :param power_list: List of pair potential strengths
+        :param par_a: Softening parameter
+        :param range_refinement: The accuracy of the interpolated data
+        :param r_lower: Specifies the lower bound of the array that
+                        the method will look for intersections.
+                        It should be provided in terms of indices
+        :param r_higher: Specifies the upper bound of the array that
+                         the method will look for intersections.
+                         It should be provided in terms of indices
+        :param intersections: Number of intersections to look for between a max and a min
+        :return: A plot with the interpolated and smoothed RDF
+                 along with the local max, min, and isosbestic (intersection) points
+        """
+        # Passing the smoothed RDF data into a list of lists
         rdf_interp_list = []
         for n in power_list:
             # calls rdf internally, and initialises r_interp list
             self.rdf_interpolate(rho, t, n, par_a, range_refinement)
-
-            # Selecting only the required range of interpolated rdf values
-            sliced_rdf_data = self.rdf_interp[r_lower:r_higher]
-
+            # Selecting only the required range of smooth interpolated rdf values
+            sliced_rdf_data = self.rdf_interp_smooth[r_lower:r_higher]
             rdf_interp_list.append(sliced_rdf_data)
 
-        # Transpose the array for easier file output
+        # Transpose the RDF array for easier file output
         rdf_interp_list = np.transpose(rdf_interp_list)
 
-        # Calculate the standard deviation across n runs
-        std_list = np.std(rdf_interp_list, axis=1)
+        # Calculate the average and standard deviation, across n runs at the same index
         mean_list = np.mean(rdf_interp_list, axis=1)
+        std_list = np.std(rdf_interp_list, axis=1)
 
-        # Find the index on the first few minima in std values
-        idx_min = np.argpartition(std_list, minima)
-
-        # Get the mean corresponding to the minimum indices of the array
-        mean_scatter = mean_list[idx_min[:minima]]
-
-        # Add the lower boundary that the std was taken from to correspond to the actual r index
-        idx_min += r_lower
+        # Get the coordinates for the local maxima and intersections in the provided range
+        # due to the filtering of the RDF data, certain inflection points are created
+        # when the g(r) is supposed to be 0. Hence the r_lower is used to ignore the
+        # first few indices of the array and obtain a clean min, max representation.
+        # The max, min plotted here correspond to the last n in the power_list
+        x_max, y_max, x_min, y_min, idx_max, idx_min = self.find_local_min_max(
+            self.r_interp[r_lower:r_higher], self.rdf_interp_smooth[r_lower:r_higher])
 
         # Plotting the intersection results into the interpolated RDF canvas
         plt.figure('Interpolated RDF')
-        # Get the r-values for the corresponding means
-        r_data = [self.r_interp[index] for index in idx_min[:minima]]
-        # scatter_label = [f"x:{r_data[i]}, y:{mean_scatter[i]}" r]
-        plt.scatter(r_data, mean_scatter, color='red', marker='x')
 
-        # Get the coordinates for the local maxima and minima in the provided range
-        x_max, y_max, x_min, y_min = self.find_local_min_max(
-            self.r_interp, self.rdf_interp)
+        # Merge and sort the arrays containing the indices of the inflection points
+        idx_max_min = np.concatenate((idx_max[0], (idx_min[0])))
+        idx_max_min.sort()
+
+        # Loop through all the max-min combinations and spot the
+        # intersect of the curves based on the std
+        for i in range(1, len(idx_max_min)):
+            # Get the index of the k smallest stds, which in theory
+            # should correspond to the point where the curves intersect
+            idx_intersect = np.argpartition(
+                std_list[idx_max_min[i-1]:idx_max_min[i]], intersections)
+            # Adjust index to match with global array index
+            idx_intersect += idx_max_min[i-1]
+
+            # Get the mean for the intersection points
+            mean_scatter = mean_list[idx_intersect[:intersections]]
+
+            # Add the lower boundary index to the std,
+            # to correspond to the actual r index
+            idx_intersect += r_lower
+
+            # Get the r-values for the corresponding RDF averaged values
+            r_data = [self.r_interp[index] for index in idx_intersect[:intersections]]
+
+            # scatter_label = [f"x:{r_data[i]}, y:{mean_scatter[i]}" r]
+            plt.scatter(r_data, mean_scatter, marker='x', color='red')
+
         plt.scatter(x_max, y_max, color='orange')
         plt.scatter(x_min, y_min, color='green')
 
         # Plotting the data curves of the interpolated data
         for n in power_list:
-            self.rdf_interpolate_plot(rho, t, n, par_a, range_refinement)
+            self.rdf_interpolate_smooth_plot(
+                rho, t, n, par_a, range_refinement)
+            # self.rdf_interpolate_plot(
+            #     rho, t, n, par_a, range_refinement)
 
-    def find_local_min_max(self, x, y):
+    @staticmethod
+    def find_local_min_max(x, y):
+        """
+        Finds the local minima and maxima and their indices. Assuming that x and y
+        have the same dimensions
+
+
+        :param x: The x variable array
+        :param y: The y variable array
+        :return: x_max, y_max, x_min, y_min, idx_max, idx_min.
+                 The x-y coordinates for the maxima and minima.
+                 Along with their indices so that the max, min values
+                 can be further used
+        """
         # Find the index of the local maxima and minima
         # this index can then be used to find the x-y values of the points
         idx_local_max = argrelextrema(y, np.greater)
@@ -458,7 +571,7 @@ class StatQ(FileNaming):
         y_local_max = y[idx_local_max[0]]
         y_local_min = y[idx_local_min[0]]
 
-        return x_local_max, y_local_max, x_local_min, y_local_min
+        return x_local_max, y_local_max, x_local_min, y_local_min, idx_local_max, idx_local_min
 
 
 if __name__ == "__main__":
@@ -471,7 +584,7 @@ if __name__ == "__main__":
     a = [0, 0.25, 0.50, 0.75, 0.8, 0.90, 1.00, 1.1,
          1.25, 1.50, 1.75, 2.00, 2.25, 2.50, 4.00]
 
-    obj.rdf_intersect(0.5, 0.5, n, 0, r_lower=580, r_higher=830, minima=1)
+    obj.rdf_intersect(0.5, 0.5, n, 0, r_lower=550, r_higher=-1, intersections=1)
 
     # for i in n:
     # obj.rdf_plot(0.5, 0.5, i, 0.25)
