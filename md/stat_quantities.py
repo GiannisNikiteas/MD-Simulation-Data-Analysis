@@ -338,7 +338,7 @@ class StatQ(FileNaming):
         plt.title(self.n_str + '~' + self.a_str)
         plt.legend(loc='best', fancybox=True)
 
-    def rdf_interpolate(self, rho, t, power, par_a, range_refinement=2000):
+    def rdf_interpolate(self, rho, t, power, par_a, range_refinement=2000, ignore_zeroes=True):
         """
         It smooths the data using a forward-backward low-pass filter.
         Then it interpolates linearly between the data provided for the RDF which in turn
@@ -350,6 +350,7 @@ class StatQ(FileNaming):
         :param power: Pair potential strength
         :param par_a: Softening parameter
         :param range_refinement: The accuracy of the interpolated data
+        :param ignore_zeroes: Ignores zeroes and close to zero values in the specified RDF array
         :return: 3 numpy.arrays of the interpolated and smoothed RDF data
         """
         self.rdf(rho, t, power, par_a)
@@ -357,16 +358,33 @@ class StatQ(FileNaming):
         # First create a lowpass butterworth filter
         # TODO: fix the parameters for the filter
         b, a = butter(3, 0.09)
-        rdf_smooth = filtfilt(b, a, self.rdf_data)
 
-        # Make and interpolating function
+        # Make the interpolating functions
         f = interpolate.interp1d(self.r, self.rdf_data, kind='linear')
+
+        # The loop creates a filter that ignores zeroes
+        # which in turn allows a more accurate smoothing of the data
+        rdf_smooth = None
+        if ignore_zeroes is True:
+            # Get the non-zero values and make a filter
+            non_zero = self.rdf_data[np.nonzero(self.rdf_data)[0]]
+            rdf_smooth = filtfilt(b, a, non_zero)
+            # Locate the zero values in the rdf data
+            zero_idx = np.where(self.rdf_data == 0)[0]
+            # Knowing that the RDF values == 0 are always
+            # at the start of the array allows us to append
+            # the two arrays to each other
+            rdf_smooth = np.concatenate((self.rdf_data[zero_idx], rdf_smooth))
+
+        else:
+            rdf_smooth = filtfilt(b, a, self.rdf_data)
+
         f_smooth = interpolate.interp1d(self.r, rdf_smooth)
 
         # Create a radius array with increased precision (number of bins)
         self.r_interp = np.linspace(self.r[0], self.r[-1], range_refinement)
 
-        # Use the interpolation function
+        # Use the interpolation functions
         self.rdf_interp = f(self.r_interp)
         self.rdf_interp_smooth = f_smooth(self.r_interp)
 
@@ -499,9 +517,6 @@ class StatQ(FileNaming):
         std_list = np.std(rdf_interp_list, axis=1)
 
         # Get the coordinates for the local maxima and intersections in the provided range
-        # due to the filtering of the RDF data, certain inflection points are created
-        # when the g(r) is supposed to be 0. Hence the r_lower is used to ignore the
-        # first few indices of the array and obtain a clean min, max representation.
         # The max, min plotted here correspond to the last n in the power_list
         x_max, y_max, x_min, y_min, idx_max, idx_min = self.find_local_min_max(
             self.r_interp[r_lower:r_higher], self.rdf_interp_smooth[r_lower:r_higher])
@@ -531,7 +546,8 @@ class StatQ(FileNaming):
             idx_intersect += r_lower
 
             # Get the r-values for the corresponding RDF averaged values
-            r_data = [self.r_interp[index] for index in idx_intersect[:intersections]]
+            r_data = [self.r_interp[index]
+                      for index in idx_intersect[:intersections]]
 
             # scatter_label = [f"x:{r_data[i]}, y:{mean_scatter[i]}" r]
             plt.scatter(r_data, mean_scatter, marker='x', color='red')
@@ -584,7 +600,8 @@ if __name__ == "__main__":
     a = [0, 0.25, 0.50, 0.75, 0.8, 0.90, 1.00, 1.1,
          1.25, 1.50, 1.75, 2.00, 2.25, 2.50, 4.00]
 
-    obj.rdf_intersect(0.5, 0.5, n, 0, r_lower=550, r_higher=-1, intersections=1)
+    obj.rdf_intersect(0.5, 0.5, n, 0, r_lower=550,
+                      r_higher=-1, intersections=1)
 
     # for i in n:
     # obj.rdf_plot(0.5, 0.5, i, 0.25)
