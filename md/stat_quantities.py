@@ -118,7 +118,8 @@ class StatQ(FileNaming):
         # return the plotting lists
         return self.r, self.rdf_data
 
-    def rdf_plot(self, rho, t, power, par_a, iso_scale=False, show_iso=False):
+    def rdf_plot(self, rho, t, power, par_a,
+                 iso_scale=False, show_iso=False, show_label=True):
         """
         Generates a plot of the Radial Distribution Data after it calls the rdf method
 
@@ -142,7 +143,10 @@ class StatQ(FileNaming):
                      0, max_scaling + 0.1], '--', color='red')
 
         # Naming the curves
-        name = f"rho: {self.rho_str} T: {self.t_str} n: {self.n_str} A: {self.a_str}"
+        name = ""
+        if show_label is True:
+            name = f"rho: {self.rho_str} T: {self.t_str}" \
+                   f" n: {self.n_str} A: {self.a_str}"
 
         plt.plot(self.r, self.rdf_data, '-', markersize=4, label=name)
 
@@ -156,9 +160,10 @@ class StatQ(FileNaming):
         # Plot limits and legends
         plt.xlim(left=0, right=self.rg)
         plt.ylim(bottom=0, top=max_scaling + 0.1)
-        plt.legend(loc="best", fancybox=True, prop={'size': 8})
-        print("@ index: ", np.argmax(self.rdf_data),
-              " value: ", max(self.rdf_data))
+        if show_label is True:
+            plt.legend(loc="best", fancybox=True, prop={'size': 8})
+        # print("@ index: ", np.argmax(self.rdf_data),
+        #       " value: ", max(self.rdf_data))
 
     # Velocity Autocorrelation Function
     def vaf(self, rho, t, power, par_a):
@@ -430,7 +435,7 @@ class StatQ(FileNaming):
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
 
     def rdf_interpolate_smooth_plot(self, rho, t, power, par_a,
-                                    range_refinement=2000):
+                                    range_refinement=2000, show_label=True):
         """
         Generates a plot of the smoothed and interpolated
         data after it calls rdf_interpolate
@@ -445,7 +450,10 @@ class StatQ(FileNaming):
         self.rdf_interpolate(rho, t, power, par_a, range_refinement)
 
         # Naming the curves
-        name = f"rho: {self.rho_str} T: {self.t_str} n: {self.n_str} A: {self.a_str}"
+        name = ''
+        if show_label is True:
+            name = f"rho: {self.rho_str} T: {self.t_str}" \
+                   f" n: {self.n_str} A: {self.a_str}"
         max_scaling = np.max(self.rdf_data)  # Scaling the plot to ymax
 
         plt.figure('Interpolated RDF')
@@ -462,7 +470,8 @@ class StatQ(FileNaming):
         # Plot labels
         plt.xlabel(r"$r$", fontsize=16)
         plt.ylabel(r"$g(r)$", fontsize=16)
-        plt.legend(loc="best", fancybox=True, prop={'size': 10})
+        if show_label is True:
+            plt.legend(loc="best", fancybox=True)
 
     def rdf_intersect(self, rho, t, power_list, par_a,
                       range_refinement=2000, r_lower=0, r_higher=-1, intersections=1):
@@ -589,9 +598,11 @@ class StatQ(FileNaming):
         # Plotting the data curves of the interpolated data
         for n in power_list:
             self.rdf_interpolate_smooth_plot(
-                rho, t, n, par_a, range_refinement)
+                rho, t, n, par_a, range_refinement,
+                show_label=False)
             self.rdf_plot(
-                rho, t, n, par_a, range_refinement)
+                rho, t, n, par_a,
+                show_label=False)
 
         return r_iso_list, mean_iso_list
 
@@ -636,6 +647,43 @@ class StatQ(FileNaming):
 
         return x_local_max, y_local_max, x_local_min, y_local_min, idx_local_max, idx_local_min
 
+    def get_intersections_to_file(self, rho_list, t_list, n_list, a_list, filename, delimiter='\t'):
+        """
+        Writes the isosbestic points coordinates (r_iso and rdf_iso) to two different files
+
+
+        :param rho_list: list of densities
+        :param t_list: list of temperatures
+        :param n_list: list of pair potential strenghts
+        :param a_list: list of softening parameters
+        :param filename: Output filename/ directory
+        :param delimiter: string that separates the data in the files
+        """
+
+        x_iso = f"{filename}/r_iso.dat"
+        y_iso = f"{filename}/rdf_iso.dat"
+        with open(x_iso, 'w+') as f_x, open(y_iso, 'w+') as f_y:
+            f_x.write('rho\tT\ta\tr_iso\n')
+            f_y.write('rho\tT\ta\tr_iso\n')
+            for rho in rho_list:
+                for t in t_list:
+                    for a in a_list:
+                        r_iso, rdf_iso = self.rdf_intersect(
+                            rho, t, n_list, a, r_lower=100)
+
+                        line_x = f"{rho}{delimiter}{t}{delimiter}{a}{delimiter}{r_iso}\n"
+                        line_x = line_x.replace('[', '')
+                        line_x = line_x.replace(']', '')
+                        line_x = line_x.replace(', ', delimiter)
+
+                        line_y = f"{rho}{delimiter}{t}{delimiter}{a}{delimiter}{rdf_iso}\n"
+                        line_y = line_y.replace('[', '')
+                        line_y = line_y.replace(']', '')
+                        line_y = line_y.replace(', ', delimiter)
+
+                        f_x.write(line_x)
+                        f_y.write(line_y)
+
 
 if __name__ == "__main__":
     import os
@@ -646,32 +694,18 @@ if __name__ == "__main__":
     n = [6, 7, 8, 9, 10, 12]
     rho = [0.3, 0.5, 1.0, 1.5]
     t = [0.5, 1.0, 2.0]
-    a = [0, 0.25, 0.50, 0.75, 0.8, 0.90]   # , 1.00, 1.1,
-    # 1.25, 1.50 , 1.75, 2.00, 2.25, 2.50, 4.00]
-
-    with open('/home/gn/Desktop/isosbestic_points.dat', 'w+') as f:
-        f.write('rho\tT\ta\tr_iso\n')
-        for r in rho:
-            for temp in t:
-                for par_a in a:
-                    r_iso, rdf_iso = obj.rdf_intersect(
-                        r, temp, n, par_a, r_lower=100)
-                    line = f"{r}\t{temp}\t{par_a}\t{r_iso}\n"
-                    line = line.replace('[', '')
-                    line = line.replace(']', '')
-                    line = line.replace(', ', '\t')
-                    f.write(line)
-                    plt.tight_layout()
-
-                    mng = plt.get_current_fig_manager()
-                    mng.window.showMaximized()
-                    plt.show()
-
+    a = [0, 0.25, 0.50, 0.75, 0.8, 0.90]
+    # a = [1.00, 1.1, 1.25, 1.50 , 1.75, 2.00, 2.25, 2.50, 4.00]
+    # for r in rho:
+    #     for tt in t:
+    #         for par_a in a:
+    #             obj.rdf_intersect(
+    #                         r, tt, n, par_a, r_lower=100)
+    #             plt.show()
     # for i in n:
     # obj.rdf_plot(0.5, 0.5, i, 0.25)
     # Shows the interpolated data
     # obj.rdf_interpolate_plot(0.5, 0.5, i, 0.25)
     # obj.msd(0.5, 0.5, i, 0.25)
     # obj.vaf(0.5, 0.5, i, 0.25)
-
-    # plt.show()
+    plt.show()
