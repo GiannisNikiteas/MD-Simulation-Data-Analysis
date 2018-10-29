@@ -132,7 +132,7 @@ class StatQ(FileNaming):
         :param show_iso: Optional, shows the location of the theoretical isosbestic point between different rdfs
         """
         self.rdf(rho, t, power, par_a, iso_scale, show_iso)
-        plt.figure('Radial Distribution Function')
+        plt.figure('Interpolated RDF')
 
         max_scaling = np.max(self.rdf_data)  # Scaling the ymax
 
@@ -383,7 +383,7 @@ class StatQ(FileNaming):
 
         # Create a radius array with increased precision (number of bins)
         self.r_interp = np.linspace(self.r[0], self.r[-1], range_refinement)
-
+        # TODO: we lose one index at some point could be bc of slicing the upper boundary
         # Use the interpolation functions
         self.rdf_interp = f(self.r_interp)
         self.rdf_interp_smooth = f_smooth(self.r_interp)
@@ -462,7 +462,7 @@ class StatQ(FileNaming):
         # Plot labels
         plt.xlabel(r"$r$", fontsize=16)
         plt.ylabel(r"$g(r)$", fontsize=16)
-        plt.legend(loc="best", fancybox=True, prop={'size': 8})
+        plt.legend(loc="best", fancybox=True, prop={'size': 10})
 
     def rdf_intersect(self, rho, t, power_list, par_a,
                       range_refinement=2000, r_lower=0, r_higher=-1, intersections=1):
@@ -480,9 +480,6 @@ class StatQ(FileNaming):
 
         Worth remembering is that smoothing the data results into the introduction of unwanted
         inflection points, neat neighbourhoods where the data do not fluctuate much.
-
-        # TODO: make the interpolation/smoothing act to all the non-zero values
-                pass arg ignore_zeroes=True and handle with if-statement
 
 
         :param rho: Density
@@ -516,51 +513,87 @@ class StatQ(FileNaming):
         mean_list = np.mean(rdf_interp_list, axis=1)
         std_list = np.std(rdf_interp_list, axis=1)
 
-        # Get the coordinates for the local maxima and intersections in the provided range
-        # The max, min plotted here correspond to the last n in the power_list
-        x_max, y_max, x_min, y_min, idx_max, idx_min = self.find_local_min_max(
+        # Get the coordinates for the local max and min in the provided range,
+        # with the intent of looking between a min-max for intersection points
+        # The max, min returned here correspond to the last curve for n in the power_list
+        __, __, __, __, idx_max, idx_min = self.find_local_min_max(
             self.r_interp[r_lower:r_higher], self.rdf_interp_smooth[r_lower:r_higher])
 
         # Plotting the intersection results into the interpolated RDF canvas
         plt.figure('Interpolated RDF')
 
         # Merge and sort the arrays containing the indices of the inflection points
-        idx_max_min = np.concatenate((idx_max[0], (idx_min[0])))
+        idx_max_min = np.concatenate((idx_max, idx_min))
         idx_max_min.sort()
 
         # Loop through all the max-min combinations and spot the
         # intersect of the curves based on the std
+        r_iso_list, mean_iso_list = [], []
+        used_max_idx, used_min_idx = [], []
         for i in range(1, len(idx_max_min)):
-            # Get the index of the k smallest stds, which in theory
-            # should correspond to the point where the curves intersect
-            idx_intersect = np.argpartition(
-                std_list[idx_max_min[i-1]:idx_max_min[i]], intersections)
-            # Adjust index to match with global array index
-            idx_intersect += idx_max_min[i-1]
+            # Filter out values that have small fluctuations in the y-axis
+            # and/or are closely located in the x-axis
+            tolerance = 0.05
+            if (abs(mean_list[idx_max_min[i]] - mean_list[idx_max_min[i-1]]) > tolerance) and \
+                    (idx_max_min[i] - idx_max_min[i-1] >= range_refinement/20):
+                # Get the index of the k smallest stds, which in theory
+                # should correspond to the point where the curves intersect
+                idx_intersect = np.argpartition(
+                    std_list[idx_max_min[i-1]:idx_max_min[i]], intersections)
+                # Adjust index to match with global(interpolated) array index
+                idx_intersect += idx_max_min[i-1]
 
-            # Get the mean for the intersection points
-            mean_scatter = mean_list[idx_intersect[:intersections]]
+                # Get the mean for the intersection points
+                mean_scatter = mean_list[idx_intersect[:intersections]]
 
-            # Add the lower boundary index to the std,
-            # to correspond to the actual r index
-            idx_intersect += r_lower
+                # Add the lower boundary index to the std,
+                # to correspond to the actual r index
+                idx_intersect += r_lower
 
-            # Get the r-values for the corresponding RDF averaged values
-            r_data = [self.r_interp[index]
-                      for index in idx_intersect[:intersections]]
+                # Get the r-values for the corresponding RDF averaged values
+                r_iso = [self.r_interp[i]
+                         for i in idx_intersect[:intersections]]
 
-            # scatter_label = [f"x:{r_data[i]}, y:{mean_scatter[i]}" r]
-            plt.scatter(r_data, mean_scatter, marker='x', color='red')
+                # Plot only the max used
+                # Extract the indices of the max/min that is used
+                if (idx_max_min[i] in idx_max) and (idx_max_min[i] not in used_max_idx):
+                    used_max_idx.append(idx_max_min[i])
+                if idx_max_min[i-1] in idx_max and (idx_max_min[i-1] not in used_max_idx):
+                    used_max_idx.append(idx_max_min[i-1])
+                if idx_max_min[i] in idx_min and (idx_max_min[i] not in used_min_idx):
+                    used_min_idx.append(idx_max_min[i])
+                if idx_max_min[i-1] in idx_min and (idx_max_min[i-1] not in used_min_idx):
+                    used_min_idx.append(idx_max_min[i-1])
 
-        plt.scatter(x_max, y_max, color='orange')
-        plt.scatter(x_min, y_min, color='green')
+                # BUG: using [0] does not account if multiple intersections are chosen
+                # Storing the x-values for export, r_iso is a list of a single element
+                r_iso_list.append(r_iso[0])
+                # Storing the y-value for the intersection
+                mean_iso_list.append(mean_scatter[0])
+
+        # Plot the intersection points
+        plt.scatter(r_iso_list, mean_iso_list, marker='x', color='red', s=100)
+
+        # Plotting the local maxima and minima of the RDF
+        # Uses the extracted indices to match them to
+        # the smoothed RDF data
+        used_x_max = [self.r_interp[i+r_lower] for i in used_max_idx]
+        used_y_max = [self.rdf_interp_smooth[i+r_lower] for i in used_max_idx]
+        used_x_min = [self.r_interp[i+r_lower] for i in used_min_idx]
+        used_y_min = [self.rdf_interp_smooth[i+r_lower] for i in used_min_idx]
+
+        # Plot the local max, min that contain an intersection between them
+        plt.scatter(used_x_max, used_y_max, color='orange')
+        plt.scatter(used_x_min, used_y_min, color='green')
 
         # Plotting the data curves of the interpolated data
         for n in power_list:
             self.rdf_interpolate_smooth_plot(
                 rho, t, n, par_a, range_refinement)
-            # self.rdf_interpolate_plot(
-            #     rho, t, n, par_a, range_refinement)
+            self.rdf_plot(
+                rho, t, n, par_a, range_refinement)
+
+        return r_iso_list, mean_iso_list
 
     @staticmethod
     def find_local_min_max(x, y):
@@ -581,11 +614,25 @@ class StatQ(FileNaming):
         idx_local_max = argrelextrema(y, np.greater)
         idx_local_min = argrelextrema(y, np.less)
 
+        # Realigning for convenience
+        idx_local_max = idx_local_max[0]
+        idx_local_min = idx_local_min[0]
+
+        # Fetch the last global minimum
+        g_min = np.where(y == y.min())[-1]
+
+        # Test to see if global min is already present
+        # TODO: element comparisson will be deprecated
+        # https://stackoverflow.com/questions/40659212/futurewarning-elementwise-comparison-failed-returning-scalar-but-in-the-futur?rq=1
+        if g_min not in idx_local_min:
+            idx_local_min = np.append(idx_local_min, g_min)
+            idx_local_min.sort()
+
         # Get the x-value for the local maxima and minima
-        x_local_max = x[idx_local_max[0]]
-        x_local_min = x[idx_local_min[0]]
-        y_local_max = y[idx_local_max[0]]
-        y_local_min = y[idx_local_min[0]]
+        x_local_max = x[idx_local_max]
+        x_local_min = x[idx_local_min]
+        y_local_max = y[idx_local_max]
+        y_local_min = y[idx_local_min]
 
         return x_local_max, y_local_max, x_local_min, y_local_min, idx_local_max, idx_local_min
 
@@ -596,12 +643,29 @@ if __name__ == "__main__":
     os.chdir("/home/gn/Desktop/test_data")
 
     obj = StatQ(15000, 1000)
-    n = [6, 7, 8, 9, 10]
-    a = [0, 0.25, 0.50, 0.75, 0.8, 0.90, 1.00, 1.1,
-         1.25, 1.50, 1.75, 2.00, 2.25, 2.50, 4.00]
+    n = [6, 7, 8, 9, 10, 12]
+    rho = [0.3, 0.5, 1.0, 1.5]
+    t = [0.5, 1.0, 2.0]
+    a = [0, 0.25, 0.50, 0.75, 0.8, 0.90]   # , 1.00, 1.1,
+    # 1.25, 1.50 , 1.75, 2.00, 2.25, 2.50, 4.00]
 
-    obj.rdf_intersect(0.5, 0.5, n, 0, r_lower=550,
-                      r_higher=-1, intersections=1)
+    with open('/home/gn/Desktop/isosbestic_points.dat', 'w+') as f:
+        f.write('rho\tT\ta\tr_iso\n')
+        for r in rho:
+            for temp in t:
+                for par_a in a:
+                    r_iso, rdf_iso = obj.rdf_intersect(
+                        r, temp, n, par_a, r_lower=100)
+                    line = f"{r}\t{temp}\t{par_a}\t{r_iso}\n"
+                    line = line.replace('[', '')
+                    line = line.replace(']', '')
+                    line = line.replace(', ', '\t')
+                    f.write(line)
+                    plt.tight_layout()
+
+                    mng = plt.get_current_fig_manager()
+                    mng.window.showMaximized()
+                    plt.show()
 
     # for i in n:
     # obj.rdf_plot(0.5, 0.5, i, 0.25)
@@ -610,4 +674,4 @@ if __name__ == "__main__":
     # obj.msd(0.5, 0.5, i, 0.25)
     # obj.vaf(0.5, 0.5, i, 0.25)
 
-    plt.show()
+    # plt.show()
