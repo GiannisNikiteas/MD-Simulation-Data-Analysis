@@ -70,7 +70,7 @@ class StatQ(FileNaming):
         self.rdf_interp_smooth = []
 
     # Radial Distribution Function
-    def rdf(self, rho, t, power, par_a, iso_scale=False, show_iso=False):
+    def rdf(self, rho, t, power, par_a, iso_scale=False):
         """
         Creates a plot for the Radial Distribution Function of the fluid, which depicts
         the microscopic density fluctuations of the molecules as a function of distance.
@@ -84,7 +84,6 @@ class StatQ(FileNaming):
         :param par_a: Softening parameter
         :param iso_scale: Optional, scales the values of r, the radius, based on the isosbestic model that
                           has been created
-        :param show_iso: Optional, shows the location of the theoretical isosbestic point between different rdfs
         :return: The numpy.array for the RDF data
 
         """
@@ -100,7 +99,7 @@ class StatQ(FileNaming):
         self.rg = 3.0
         self.dr = self.rg / bins
 
-        # r range, r=0 is intentionally neglected due to division by 0
+        # r=0 is intentionally neglected due to division by 0
         # num_lines-2 because of comments and headers
         self.num_lines_rdf -= 2
         self.r = np.linspace(1, self.num_lines_rdf, self.num_lines_rdf)
@@ -110,16 +109,10 @@ class StatQ(FileNaming):
         if iso_scale is True:
             self.r = np.multiply(self.r, rho ** (1. / 3.))  # Scale r
 
-        # Plotting isosbestic point
-        if show_iso is True:  # Show isosbestic point
-            # TODO: this is not correct, missing a factor probably, revise theory!
-            self.iso = np.sqrt(1 - par_a ** 2)
-
         # return the plotting lists
         return self.r, self.rdf_data
 
-    def rdf_plot(self, rho, t, power, par_a,
-                 iso_scale=False, show_iso=False, show_label=True):
+    def rdf_plot(self, rho, t, power, par_a, iso_scale=False, show_label=True):
         """
         Generates a plot of the Radial Distribution Data after it calls the rdf method
 
@@ -130,17 +123,11 @@ class StatQ(FileNaming):
         :param par_a: Softening parameter
         :param iso_scale: Optional, scales the values of r, the radius, based on the isosbestic model that
                           has been created
-        :param show_iso: Optional, shows the location of the theoretical isosbestic point between different rdfs
         """
-        self.rdf(rho, t, power, par_a, iso_scale, show_iso)
+        self.rdf(rho, t, power, par_a, iso_scale)
         plt.figure('Interpolated RDF')
 
         max_scaling = np.max(self.rdf_data)  # Scaling the ymax
-
-        # Plotting isosbestic location of points
-        if show_iso is True:
-            plt.plot([self.iso, self.iso], [
-                     0, max_scaling + 0.1], '--', color='red')
 
         # Naming the curves
         name = ""
@@ -343,7 +330,7 @@ class StatQ(FileNaming):
         plt.title(self.n_str + '~' + self.a_str)
         plt.legend(loc='best', fancybox=True)
 
-    def rdf_interpolate(self, rho, t, power, par_a, range_refinement=2000, ignore_zeroes=True):
+    def rdf_interpolate(self, rho, t, power, par_a, range_refinement=2000, iso_scale=False, ignore_zeroes=True):
         """
         It smooths the data using a forward-backward low-pass filter.
         Then it interpolates linearly between the data provided for the RDF which in turn
@@ -358,7 +345,7 @@ class StatQ(FileNaming):
         :param ignore_zeroes: Ignores zeroes and close to zero values in the specified RDF array
         :return: 3 numpy.arrays of the interpolated and smoothed RDF data
         """
-        self.rdf(rho, t, power, par_a)
+        self.rdf(rho, t, power, par_a, iso_scale)
         # Smooth the data before interpolating with a forward backward filter
         # First create a lowpass butterworth filter
         # TODO: fix the parameters for the filter
@@ -400,8 +387,7 @@ class StatQ(FileNaming):
         self.interpolated_data.append(self.rdf_interp)
         return self.r_interp, self.rdf_interp, self.rdf_interp_smooth
 
-    def rdf_interpolate_plot(self, rho, t, power, par_a,
-                             range_refinement=2000):
+    def rdf_interpolate_plot(self, rho, t, power, par_a, range_refinement=2000, iso_scale=False):
         """
         Generates a plot of the interpolated data after it calls rdf_interpolate
 
@@ -412,7 +398,7 @@ class StatQ(FileNaming):
         :param par_a: Softening parameter
         :param range_refinement: The accuracy of the interpolated data
         """
-        self.rdf_interpolate(rho, t, power, par_a, range_refinement)
+        self.rdf_interpolate(rho, t, power, par_a, range_refinement, iso_scale)
 
         # Naming the curves
         name = f"rho: {self.rho_str} T: {self.t_str} n: {self.n_str} A: {self.a_str}"
@@ -434,8 +420,7 @@ class StatQ(FileNaming):
         plt.ylabel(r"$g(r)$", fontsize=16)
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
 
-    def rdf_interpolate_smooth_plot(self, rho, t, power, par_a,
-                                    range_refinement=2000, show_label=True):
+    def rdf_interpolate_smooth_plot(self, rho, t, power, par_a, range_refinement=2000, iso_scale=False, show_label=True):
         """
         Generates a plot of the smoothed and interpolated
         data after it calls rdf_interpolate
@@ -447,7 +432,7 @@ class StatQ(FileNaming):
         :param par_a: Softening parameter
         :param range_refinement: The accuracy of the interpolated data
         """
-        self.rdf_interpolate(rho, t, power, par_a, range_refinement)
+        self.rdf_interpolate(rho, t, power, par_a, range_refinement, iso_scale)
 
         # Naming the curves
         name = ''
@@ -473,8 +458,7 @@ class StatQ(FileNaming):
         if show_label is True:
             plt.legend(loc="best", fancybox=True)
 
-    def rdf_intersect(self, rho, t, power_list, par_a,
-                      range_refinement=2000, r_lower=0, r_higher=-1, intersections=1):
+    def rdf_intersect(self, rho, t, power_list, par_a, range_refinement=2000, r_lower=0, r_higher=-1, intersections=1):
         """
         Finds the points of intersection in RDF functions by looping through multiple ns.
         The RDF data are first smoothed with a forward-backward filter in order to reduce
@@ -695,6 +679,7 @@ if __name__ == "__main__":
     rho = [0.3, 0.5, 1.0, 1.5]
     t = [0.5, 1.0, 2.0]
     a = [0, 0.25, 0.50, 0.75, 0.8, 0.90]
+
     # a = [1.00, 1.1, 1.25, 1.50 , 1.75, 2.00, 2.25, 2.50, 4.00]
     # for r in rho:
     #     for tt in t:
@@ -702,10 +687,5 @@ if __name__ == "__main__":
     #             obj.rdf_intersect(
     #                         r, tt, n, par_a, r_lower=100)
     #             plt.show()
-    # for i in n:
-    # obj.rdf_plot(0.5, 0.5, i, 0.25)
-    # Shows the interpolated data
-    # obj.rdf_interpolate_plot(0.5, 0.5, i, 0.25)
-    # obj.msd(0.5, 0.5, i, 0.25)
-    # obj.vaf(0.5, 0.5, i, 0.25)
+
     plt.show()
