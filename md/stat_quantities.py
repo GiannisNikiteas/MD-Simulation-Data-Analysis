@@ -153,7 +153,7 @@ class StatQ(FileNaming):
         #       " value: ", max(self.rdf_data))
 
     # Velocity Autocorrelation Function
-    def vaf(self, rho, t, power, par_a):
+    def vaf(self, rho, t, power, par_a, iso_scale=False):
         """
         Creates a figure for the Velocity Autocorrelation Function of the fluid, which illustrates
         if the fluid remains a coupled system through time (correlated) or it uncouples.
@@ -171,32 +171,33 @@ class StatQ(FileNaming):
         cr = np.loadtxt(data, usecols=8, delimiter='\t',
                         unpack=True, comments='#')
 
+        # Data normalisation for old data sets
+        # that were not natively normalised
+        # cr /= 3.0*t
+
         # Measure the number of lines with data in file
-        num_lines = 0
-        for line in open(data):
-            if line.startswith('#'):
-                continue
-            num_lines += 1
+        num_lines = int(len(cr))
 
         time_step = 0.005 / np.sqrt(t)
-        time = time_step * num_lines
-        x = np.linspace(0, time, num_lines)
-        t_tilde = x * rho ** (1. / 3.) * t ** 0.5
+        time_max = time_step * num_lines
+        time = np.linspace(0, time_max, num_lines)
+
         name = ""
         if num_lines < 100000:
             name = f"rho: {self.rho_str} T: {self.t_str} n: {self.n_str} A: {self.a_str}"
 
         plt.figure('Velocity Autocorrelation Function')
         y = np.full(num_lines, 0)
-        # xx = np.full(num_lines, time)
-        # yy = np.linspace(5, -0.5, num_lines)
-        # plt.plot(xx, yy, '--', color='black')
-        plt.plot(t_tilde, y, '--', color='black')
-        plt.plot(t_tilde, cr, label=name)
+
+        if iso_scale is True:
+            time = time * (rho ** (1.0 / 3.0)) * (t ** (0.5))
+
+        plt.plot(time, y, '--', color='black')
+        plt.plot(time, cr, label=name)
         plt.xlabel(r"Time $t$", fontsize=16)
         plt.ylabel(r"$C_v$", fontsize=16)
-        # plt.ylim(top=5, bottom=-0.5)
-        plt.xlim(left=t_tilde[0], right=t_tilde[-1])
+
+        plt.xlim(left=time[0], right=time[-1])
         plt.legend(loc="best", ncol=1)
 
     # Mean Square Displacement
