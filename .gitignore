@@ -9,3 +9,4 @@ logs/*
 *.xml
 .vscode/
 md/test_file.py
+md/isomorph_plotting.py
