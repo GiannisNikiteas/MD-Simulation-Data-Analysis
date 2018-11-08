@@ -3,7 +3,9 @@ from md import StatQ
 from scipy import interpolate
 import matplotlib.pyplot as plt
 from scipy.signal import argrelextrema, butter, filtfilt
+import itertools
 
+MARKERS = itertools.cycle(("o", "v", "s", "p", "P", "*", "+", "x", "d"))
 
 class RDFAnalysis(StatQ):
 
@@ -157,7 +159,7 @@ class RDFAnalysis(StatQ):
         an intersection point is sought (although for some extreme cases that is not entirely true).
 
         Worth remembering is that smoothing the data results into the introduction of unwanted
-        inflection points, neat neighbourhoods where the data do not fluctuate much.
+        inflection points, near neighborhoods where the data do not fluctuate much.
 
 
         :param rho: Density
@@ -353,7 +355,7 @@ class RDFAnalysis(StatQ):
                         f_x.write(line_x)
                         f_y.write(line_y)
 
-    def plot_intersection(self, rho, t, par_a):
+    def plot_intersection(self, rho, t):
         # Read rho and T from file if it matches rho and T read
         data = "r_iso.dat"
         rho_list, t_list, a_list, r_iso_list = np.loadtxt(
@@ -370,6 +372,7 @@ class RDFAnalysis(StatQ):
         t_list = t_list[indices]
         a_list = a_list[indices]
         r_iso_list = r_iso_list[indices]
-
-        plt.scatter(a_list, r_iso_list)
-        print("something")
+        plt.figure(f"r_iso Intersections with T: {t}")
+        name = fr"$\rho$: {rho}  T: {t}"
+        plt.scatter(a_list, r_iso_list, label=name)
+        plt.legend(loc="best")

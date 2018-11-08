@@ -82,6 +82,7 @@ class StatQ(FileNaming):
 
         """
         file_id = self.file_searcher(rho, t, power, par_a)
+        print(file_id)
         data = f"RDF{file_id}.txt"
         self.num_lines_rdf = sum(1 for line in open(data))
         self.rdf_data = np.loadtxt(
@@ -282,7 +283,7 @@ class StatQ(FileNaming):
     def vel_dist(self, rho, t, power, par_a):
         """
         Plots the velocity distributions for the X, Y, Z and the combined velocity vector
-        for the last savec position of the fluid
+        for the last saved position of the fluid
 
 
         :param rho: Density
@@ -336,5 +337,3 @@ if __name__ == "__main__":
     rho = [0.3, 0.5, 1.0, 1.5]
     t = [0.5, 1.0, 2.0]
     a = [0, 0.25, 0.50, 0.75, 0.8, 0.90]
-
-    plt.show()
