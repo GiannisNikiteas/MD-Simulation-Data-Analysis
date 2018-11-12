@@ -10,3 +10,4 @@ logs/*
 .vscode/
 md/test_file.py
 md/isomorph_plotting.py
+md/parametric_surface_plotting.py
