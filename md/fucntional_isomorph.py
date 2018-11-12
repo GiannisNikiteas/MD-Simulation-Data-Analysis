@@ -10,7 +10,7 @@ The file generates a the contour for all the possible parameter a values, for a 
 
 jet = plt.get_cmap('jet')
 
-
+# This is wrong because rho cannot take any value given a T, so rho is not really a parameter
 def iso_function(rho, t, rho0=1.0, t0=1.0, a0=0.5, n=8):
     a = a0 * (rho/rho0) ** (1./3.) * ((t0/t) ** (6/n)) ** (1.0/3.0)
     return a
