@@ -9,5 +9,7 @@ logs/*
 *.xml
 .vscode/
 md/test_file.py
-md/isomorph_plotting.py
+md/contour_n_isomorph.py
+md/contour_rho_isomorph.py
+md/functional_isomorph.py
 md/parametric_surface_plotting.py
