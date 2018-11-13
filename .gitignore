@@ -9,7 +9,9 @@ logs/*
 *.xml
 .vscode/
 md/test_file.py
+
+# Ignoring legacy 3D files
 md/contour_n_isomorph.py
-md/contour_rho_isomorph.py
-md/functional_isomorph.py
+md/contour_rho_ismorph.py
+md/fucntional_isomorph.py
 md/parametric_surface_plotting.py
