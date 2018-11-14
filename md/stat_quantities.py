@@ -58,7 +58,7 @@ class StatQ(FileNaming):
         # RDF shared variables
         self.r = []         # container for the rdf-x data
         self.rdf_data = []  # container for the rdf y-data
-        self.num_lines_rdf = 0  # number of lines filled with data in the rdf file
+        self.rdf_bins = 0  # number of lines filled with data in the rdf file
         self.rg = 3.0   # cut-off radius
         self.dr = 0     # distance increment in the radius
         self.iso = 0    # x-location for the theoretical isosbestic points
@@ -84,20 +84,20 @@ class StatQ(FileNaming):
         file_id = self.file_searcher(rho, t, power, par_a)
         print(file_id)
         data = f"RDF{file_id}.txt"
-        self.num_lines_rdf = sum(1 for line in open(data))
+        # self.rdf_bins = sum(1 for line in open(data))
         self.rdf_data = np.loadtxt(
             data, delimiter="\t", usecols=1, comments="#")
+        # Calculate the number of bins present in RDF
+        self.rdf_bins = int(len(self.rdf_data))
 
-        # Number of particles, Number of bins
-        particles, bins = int(self.p_str), 500
+        # Number of particles
+        particles = int(self.p_str)
         # Cut off radius
         self.rg = 3.0
-        self.dr = self.rg / bins
+        self.dr = self.rg / self.rdf_bins
 
         # r=0 is intentionally neglected due to division by 0
-        # num_lines-2 because of comments and headers
-        self.num_lines_rdf -= 2
-        self.r = np.linspace(1, self.num_lines_rdf, self.num_lines_rdf)
+        self.r = np.linspace(1, self.rdf_bins, self.rdf_bins)
         self.r = np.multiply(self.r, self.dr)
 
         # Isomorphic scaling of r for the isomorph plane
@@ -329,11 +329,19 @@ class StatQ(FileNaming):
 
 if __name__ == "__main__":
     import os
+    import matplotlib.pyplot as plt
 
-    os.chdir("/home/gn/Desktop/test_data")
+    os.chdir("./examples/example_data")
 
-    obj = StatQ(15000, 1000)
+    obj = StatQ(5000, 1000)
+    obj.rdf_plot(0.5, 0.5, 8, 0.5)
+    obj.msd(0.5, 0.5, 8, 0.5)
+    obj.vaf(0.5, 0.5, 8, 0.5)
+    obj.vel_dist(0.5, 0.5, 8, 0.5)
+
     n = [6, 7, 8, 9, 10, 12]
     rho = [0.3, 0.5, 1.0, 1.5]
     t = [0.5, 1.0, 2.0]
     a = [0, 0.25, 0.50, 0.75, 0.8, 0.90]
+    
+    plt.show()

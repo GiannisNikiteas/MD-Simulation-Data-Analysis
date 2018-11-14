@@ -124,6 +124,7 @@ def plot_all_surfaces():
     isomorphic_surface_array(rho_list, t_list, n_list, a_list, t2, "Isomorphs_with_varying_A0")
 
     # PLOT VARIOUS PAIR POTENTIAL STRENGTHS n
+    # TODO: increase color intensity cyan, light green, DISABLE SHADING, wireframe color and decrease thickness
     a_list = [0.5]
     t_list = [0.5]
     n_list = list(range(8, 15, 2))
