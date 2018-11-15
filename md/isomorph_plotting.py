@@ -115,44 +115,51 @@ def plot_all_surfaces():
     t_list = np.linspace(0.2, 1, 5)
     a_list = [0.5]
     n_list = [8]
-    isomorphic_surface_array(rho_list, t_list, n_list, a_list, t2, "Isomorphs_with_varying_T0")
+    isomorphic_surface_array(rho_list, t_list, n_list,
+                             a_list, t2, "Isomorphs_with_varying_T0")
 
     # PLOT VARIOUS PARAMETERS A0
     a_list = np.linspace(0.5, 1, 3)
     t_list = [0.5]
     n_list = [8]
-    isomorphic_surface_array(rho_list, t_list, n_list, a_list, t2, "Isomorphs_with_varying_A0")
+    isomorphic_surface_array(rho_list, t_list, n_list,
+                             a_list, t2, "Isomorphs_with_varying_A0")
 
     # PLOT VARIOUS PAIR POTENTIAL STRENGTHS n
     # TODO: increase color intensity cyan, light green, DISABLE SHADING, wireframe color and decrease thickness
     a_list = [0.5]
     t_list = [0.5]
     n_list = list(range(8, 15, 2))
-    isomorphic_surface_array(rho_list, t_list, n_list, a_list, t2, "Isomorphs_with_varying_n")
+    isomorphic_surface_array(rho_list, t_list, n_list,
+                             a_list, t2, "Isomorphs_with_varying_n")
 
     # PLOT VARIOUS A0 AND T0
     t_list = np.linspace(0.2, 1, 3)
     a_list = np.linspace(0, 1, 3)
     n_list = [8]
-    isomorphic_surface_array(rho_list, t_list, n_list, a_list, t2, "Isomorphs_with_varying_A0_and_T0")
+    isomorphic_surface_array(rho_list, t_list, n_list,
+                             a_list, t2, "Isomorphs_with_varying_A0_and_T0")
 
     # PLOT VARYING A0 and n
     t_list = [0.5]
     a_list = np.linspace(0, 1, 3)
     n_list = list(range(8, 15, 2))
-    isomorphic_surface_array(rho_list, t_list, n_list, a_list, t2, "Isomorphs_with_varying_A0_and_n")
+    isomorphic_surface_array(rho_list, t_list, n_list,
+                             a_list, t2, "Isomorphs_with_varying_A0_and_n")
 
     # PLOT VARYING T0 and n
     t_list = np.linspace(0.2, 1, 3)
     a_list = [0.5]
     n_list = list(range(8, 13, 2))
-    isomorphic_surface_array(rho_list, t_list, n_list, a_list, t2, "Isomorphs_with_varying_T0_and_n")
+    isomorphic_surface_array(rho_list, t_list, n_list,
+                             a_list, t2, "Isomorphs_with_varying_T0_and_n")
 
     # PLOT WITH TEMPERATURE TO INFINITY
     t_list = np.linspace(0.2, 10, 15)
     a_list = [0.5]
     n_list = [8]
-    isomorphic_surface_array(rho_list, t_list, n_list, a_list, t2, "Isomorphs_T0_to_infinity")
+    isomorphic_surface_array(rho_list, t_list, n_list,
+                             a_list, t2, "Isomorphs_T0_to_infinity")
 
 
 # Not working with 3DAxes
@@ -170,13 +177,17 @@ def load_figures(fig_names):
     return fig_list
 
 
-# Change directory to where files will be saved and loaded from
-os.chdir("/home/gn/Desktop/surface_figures")
-# List that contains a copy of the figure names, that will be loaded into the load_pickle function
-# to resume the figures to their normal state without having to re-plot them
-fig_names = ["Isomorphs_with_varying_T0", "Isomorphs_with_varying_A0", "Isomorphs_with_varying_n",
-             "Isomorphs_with_varying_A0_and_T0", "Isomorphs_with_varying_A0_and_n", "Isomorphs_with_varying_T0_and_n",
-             "Isomorphs_T0_to_infinity"]
+if __name__ == "__main__":
+    import os
+    import matplotlib.pyplot as plt
 
-plot_all_surfaces()
-plt.show()
+    # Change directory to where files will be saved and loaded from
+    os.chdir("/home/gn/Desktop/surface_figures")
+    # List that contains a copy of the figure names, that will be loaded into the load_pickle function
+    # to resume the figures to their normal state without having to re-plot them
+    fig_names = ["Isomorphs_with_varying_T0", "Isomorphs_with_varying_A0", "Isomorphs_with_varying_n",
+                 "Isomorphs_with_varying_A0_and_T0", "Isomorphs_with_varying_A0_and_n", "Isomorphs_with_varying_T0_and_n",
+                 "Isomorphs_T0_to_infinity"]
+
+    plot_all_surfaces()
+    plt.show()
