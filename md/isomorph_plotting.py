@@ -183,10 +183,15 @@ if __name__ == "__main__":
 
     # Change directory to where files will be saved and loaded from
     os.chdir("/home/gn/Desktop/surface_figures")
-    # List that contains a copy of the figure names, that will be loaded into the load_pickle function
+    # List that contains a copy of the figure names, 
+    # that will be loaded into the load_pickle function
     # to resume the figures to their normal state without having to re-plot them
-    fig_names = ["Isomorphs_with_varying_T0", "Isomorphs_with_varying_A0", "Isomorphs_with_varying_n",
-                 "Isomorphs_with_varying_A0_and_T0", "Isomorphs_with_varying_A0_and_n", "Isomorphs_with_varying_T0_and_n",
+    fig_names = ["Isomorphs_with_varying_T0",
+                 "Isomorphs_with_varying_A0",
+                 "Isomorphs_with_varying_n",
+                 "Isomorphs_with_varying_A0_and_T0",
+                 "Isomorphs_with_varying_A0_and_n",
+                 "Isomorphs_with_varying_T0_and_n",
                  "Isomorphs_T0_to_infinity"]
 
     plot_all_surfaces()
