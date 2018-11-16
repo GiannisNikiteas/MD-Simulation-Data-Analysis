@@ -3,7 +3,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
-sys.path.append("/home/gn/Code/MD-simulation/tools/MD-Simulation-Data-Analysis")
 from md import StatQ, Isomorph, RDFAnalysis
 
 os.chdir("/home/gn/Desktop/test_data/isomorph")
@@ -47,7 +46,8 @@ for temp in t:
     plt.show()
 
 os.chdir("/home/gn/Desktop/iso_ver/unoptimised")
-rdf_stat.get_intersections_to_file(rho, t, n, a, "/home/gn/Desktop/iso_ver/unoptimised")
+rdf_stat.get_intersections_to_file(
+    rho, t, n, a, "/home/gn/Desktop/iso_ver/unoptimised")
 
 for temp in t:
     for density in rho:

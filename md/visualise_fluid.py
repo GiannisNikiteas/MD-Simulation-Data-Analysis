@@ -1,11 +1,10 @@
 from md.stat_quantities import FileNaming
 import numpy as np
-import matplotlib.cm as cm
+from matplotlib import cm
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-# TODO: fix colormap imports
 class ParticleVisualisation(FileNaming):
     def __init__(self, steps, particles):
         super().__init__(steps, particles)
@@ -58,7 +57,7 @@ class ParticleVisualisation(FileNaming):
         name = "rho: " + self.rho_str + "T: " + \
                self.t_str + "n: " + self.n_str + "A: " + self.a_str
         q = plt.quiver(rx, ry, vx, vy, rz, pivot='mid',
-                       cmap=cm.gnuplot_r, alpha=0.75, label=name)
+                       cmap=cm.get_cmap('gnuplot_r'), alpha=0.75, label=name)
         # plt.scatter(rx, ry, alpha=0.4, label=name)
         plt.colorbar(q)
         plt.legend(loc="best")
@@ -94,10 +93,10 @@ class ParticleVisualisation(FileNaming):
         ax.dist = 8  # camera distance
         q = ax.quiver(rx[::stride], ry[::stride], rz[::stride],
                       vx[::stride], vy[::stride], vz[::stride],
-                      cmap=cm.jet, label=name, alpha=0.7,
+                      cmap=cm.get_cmap('viridis'), label=name, alpha=0.7,
                       normalize=True, pivot='middle')
         q.set_array(rz[::stride])
         # m = cm.ScalarMappable(cmap=cm.jet)
         # m.set_array(rz)
-        fig.colorbar(q, cmap=cm.jet)
+        fig.colorbar(q, cmap=cm.get_cmap('viridis'))
         plt.legend(loc='best')

@@ -14,7 +14,8 @@ class FileNaming(object):
 
     def file_searcher(self, rho, t, n, alpha=None):
         """
-        Constructs the file signature of the MD simulation in order for the information to be read
+        Constructs the file signature of the MD simulation
+        in order for the information to be read
 
 
         :param rho: density
@@ -319,7 +320,7 @@ class StatQ(FileNaming):
         n, bins, patches = v_plot.hist(v, 150, density=1, label='v')
 
         plt.plot(lnspc, pdf_mb, label='Theory')
-        plt.xlim(xmin=0)
+        plt.xlim(left=0)
         plt.title(self.n_str + '~' + self.a_str)
         plt.legend(loc='best', fancybox=True)
 
@@ -340,5 +341,5 @@ if __name__ == "__main__":
     rho = [0.3, 0.5, 1.0, 1.5]
     t = [0.5, 1.0, 2.0]
     a = [0, 0.25, 0.50, 0.75, 0.8, 0.90]
-    
+
     plt.show()

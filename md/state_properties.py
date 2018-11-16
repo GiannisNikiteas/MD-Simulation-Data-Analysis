@@ -47,13 +47,13 @@ class StateProperties(FileNaming):
 
         # k, u, t = kin_en[500], pot_en[500], tot_en[500]
         kin_f.plot(x, kin_en, 'r')
-        kin_f.locator_params(axis='y', nbins=4), kin_f.set_ylim(ymax=4)
+        kin_f.locator_params(axis='y', nbins=4), kin_f.set_ylim(top=4)
         pot_f.plot(x, pot_en, 'g')
         pot_f.locator_params(axis='y', nbins=3)
         pot_f.set_ylabel("Energy units", size=16)
         tot_f.plot(x, tot_en, 'b')
         tot_f.locator_params(axis='y', nbins=4)
-        tot_f.set_ylim(ymax=6)
+        tot_f.set_ylim(top=6)
 
         # x_r = time / 2 - time / 4
         # Kin.set_title('Individual Plots n = %d' %power, fontsize=17)
@@ -71,7 +71,7 @@ class StateProperties(FileNaming):
             ax.set_yticks(ax.get_yticks()[1:])
 
         all_f.plot(x, kin_en, 'r', x, pot_en, 'g', x, tot_en, 'b')
-        all_f.set_ylim(ymax=5)
+        all_f.set_ylim(top=5)
 
     def potential_data(self, rho, t, power, par_a):
         """
@@ -151,7 +151,7 @@ class StateProperties(FileNaming):
 
         plt.figure('Average Pressure')
         plt.plot(a, pc, '-o', label=name, markersize=3)
-        plt.xlim(xmin=0, xmax=4.0)
+        plt.xlim(left=0, right=4.0)
         # plt.title("Configurational Pressure for multiple Potentials")
         plt.xlabel(r"$A$", size=16)
         plt.ylabel(r"$P_c$", size=16)
@@ -221,7 +221,7 @@ class StateProperties(FileNaming):
         all_f = plt.subplot2grid((3, 2), (0, 1), rowspan=3)
 
         kin_f.plot(a, K, color='r')
-        kin_f.set_ylim(ymin=2.0), kin_f.locator_params(
+        kin_f.set_ylim(bottom=2.0), kin_f.locator_params(
             axis='y', nbins=5, prune='lower')
         pot_f.plot(a, U, color='g')
         pot_f.locator_params(
@@ -243,5 +243,5 @@ class StateProperties(FileNaming):
             ax.set_yticks(ax.get_yticks()[1:])
 
         all_f.plot(a, K, 'r', a, U, 'g', a, T, 'c')
-        all_f.set_ylim(ymax=6)
+        all_f.set_ylim(top=6)
         all_f.locator_params(axis='x', nbins=4)
