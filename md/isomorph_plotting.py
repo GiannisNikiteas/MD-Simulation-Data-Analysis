@@ -1,4 +1,3 @@
-import os
 import numpy as np
 import pickle as pl
 import matplotlib.pyplot as plt

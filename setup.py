@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup   # find_packages
 
 
 with open('README.md', 'r') as fh:
@@ -20,7 +20,5 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
     ],
+    install_requires=['matplotlib', 'scipy', 'numpy']
 )
-
-
-
