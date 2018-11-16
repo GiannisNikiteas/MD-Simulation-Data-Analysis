@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
+# TODO: fix colormap imports
 class ParticleVisualisation(FileNaming):
     def __init__(self, steps, particles):
         super().__init__(steps, particles)

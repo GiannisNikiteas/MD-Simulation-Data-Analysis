@@ -1,18 +1,16 @@
-*.idea/
-.idea/dictionaries/gn.xml
-.pytest_cache/README.md
-.pytest_cache/v/cache/nodeids
-__pycache__/plotting_class.cpython-36.pyc
-logs/*
-*.log
-.idea/*
-*.xml
+.idea/
+__pycache__/
+logs/
 .vscode/
-md/test_file.py
+*.log
+*.xml
 
 # Ignoring legacy 3D files
-md/contour_n_isomorph.py
-md/contour_rho_ismorph.py
-md/fucntional_isomorph.py
-md/parametric_surface_plotting.py
-md/legacy
+md/__pycache__/
+md/legacy/
+md/test_file.py
+
+# Ignoring build
+build/
+dist/
+md.egg-info/
