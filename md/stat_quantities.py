@@ -82,7 +82,6 @@ class StatQ(FileNaming):
 
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        print(file_id)
         data = f"RDF{file_id}.txt"
         # self.rdf_bins = sum(1 for line in open(data))
         self.rdf_data = np.loadtxt(
@@ -144,8 +143,6 @@ class StatQ(FileNaming):
         plt.ylim(bottom=0, top=max_scaling + 0.1)
         if show_label is True:
             plt.legend(loc="best", fancybox=True, prop={'size': 8})
-        # print("@ index: ", np.argmax(self.rdf_data),
-        #       " value: ", max(self.rdf_data))
 
     # Velocity Autocorrelation Function
     def vaf(self, rho, t, power, par_a, iso_scale=False):
