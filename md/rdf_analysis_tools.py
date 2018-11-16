@@ -7,6 +7,7 @@ import itertools
 
 MARKERS = itertools.cycle(("o", "v", "s", "p", "P", "*", "+", "x", "d"))
 
+
 class RDFAnalysis(StatQ):
 
     def __init__(self, steps, particles):
@@ -16,7 +17,10 @@ class RDFAnalysis(StatQ):
         self.rdf_interp = []
         self.rdf_interp_smooth = []
 
-    def rdf_interpolate(self, rho, t, power, par_a, range_refinement=2000, iso_scale=False, ignore_zeroes=True):
+    def rdf_interpolate(self, rho, t, power, par_a,
+                        range_refinement=2000,
+                        iso_scale=False,
+                        ignore_zeroes=True):
         """
         It smooths the data using a forward-backward low-pass filter.
         Then it interpolates linearly between the data provided for the RDF which in turn
@@ -74,7 +78,9 @@ class RDFAnalysis(StatQ):
         self.interpolated_data.append(self.rdf_interp)
         return self.r_interp, self.rdf_interp, self.rdf_interp_smooth
 
-    def rdf_interpolate_plot(self, rho, t, power, par_a, range_refinement=2000, iso_scale=False):
+    def rdf_interpolate_plot(self, rho, t, power, par_a,
+                             range_refinement=2000,
+                             iso_scale=False):
         """
         Generates a plot of the interpolated data after it calls rdf_interpolate
 
@@ -107,7 +113,10 @@ class RDFAnalysis(StatQ):
         plt.ylabel(r"$g(r)$", fontsize=16)
         plt.legend(loc="best", fancybox=True, prop={'size': 8})
 
-    def rdf_interpolate_smooth_plot(self, rho, t, power, par_a, range_refinement=2000, iso_scale=False, show_label=True):
+    def rdf_interpolate_smooth_plot(self, rho, t, power, par_a,
+                                    range_refinement=2000,
+                                    iso_scale=False,
+                                    show_label=True):
         """
         Generates a plot of the smoothed and interpolated
         data after it calls rdf_interpolate
@@ -145,7 +154,10 @@ class RDFAnalysis(StatQ):
         if show_label is True:
             plt.legend(loc="best", fancybox=True)
 
-    def rdf_intersect(self, rho, t, power_list, par_a, range_refinement=2000, r_lower=0, r_higher=-1, intersections=1):
+    def rdf_intersect(self, rho, t, power_list, par_a,
+                      range_refinement=2000,
+                      r_lower=0, r_higher=-1,
+                      intersections=1):
         """
         Finds the points of intersection in RDF functions by looping through multiple ns.
         The RDF data are first smoothed with a forward-backward filter in order to reduce
@@ -159,7 +171,7 @@ class RDFAnalysis(StatQ):
         an intersection point is sought (although for some extreme cases that is not entirely true).
 
         Worth remembering is that smoothing the data results into the introduction of unwanted
-        inflection points, near neighborhoods where the data do not fluctuate much.
+        inflection points, near neighbourhoods where the data do not fluctuate much.
 
 
         :param rho: Density
@@ -318,7 +330,9 @@ class RDFAnalysis(StatQ):
 
         return x_local_max, y_local_max, x_local_min, y_local_min, idx_local_max, idx_local_min
 
-    def get_intersections_to_file(self, rho_list, t_list, n_list, a_list, filename, delimiter='\t'):
+    def get_intersections_to_file(self, rho_list, t_list, n_list, a_list,
+                                  filename,
+                                  delimiter='\t'):
         """
         Writes the isosbestic points coordinates (r_iso and rdf_iso) to two different files
 
