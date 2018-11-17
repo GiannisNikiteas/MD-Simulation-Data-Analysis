@@ -6,12 +6,12 @@ logs/
 *.xml
 
 # Ignoring legacy 3D files
-mdtools/__pycache__/
-mdtools/legacy/
-mdtools/test_file.py
+mdanalysistools/__pycache__/
+mdanalysistools/legacy/
+mdanalysistools/test_file.py
 symbols/
 
 # Ignoring build
 build/
 dist/
-mdtools.egg-info/
+mdanalysistools.egg-info/
