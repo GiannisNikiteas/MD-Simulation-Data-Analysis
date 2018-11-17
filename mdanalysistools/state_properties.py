@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from mdtools.stat_quantities import FileNaming
+from mdanalysistools.stat_quantities import FileNaming
 
 
 class StateProperties(FileNaming):

@@ -1,4 +1,4 @@
-from mdtools.stat_quantities import FileNaming
+from mdanalysistools.stat_quantities import FileNaming
 import numpy as np
 from matplotlib import cm
 import matplotlib.pyplot as plt

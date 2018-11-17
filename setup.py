@@ -6,9 +6,9 @@ with open('README.md', 'r') as fh:
 
 
 setup(
-    name='mdtools',
+    name='mdanalysistools',
     version='0.0.1',
-    packages=['mdtools'],
+    packages=['mdanalysistools'],
     url='https://github.com/GiannisNikiteas/MD-Simulation-Data-Analysis',
     license='',
     author='Giannis Nikiteas',
