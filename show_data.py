@@ -3,7 +3,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
-from md import StatQ, Isomorph, RDFAnalysis
+from mdtools import StatQ, Isomorph, RDFAnalysis
 
 os.chdir("/home/gn/Desktop/test_data/isomorph")
 

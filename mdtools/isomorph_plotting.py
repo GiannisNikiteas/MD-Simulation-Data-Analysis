@@ -1,7 +1,7 @@
 import numpy as np
 import pickle as pl
 import matplotlib.pyplot as plt
-from md import Isomorph
+from mdtools import Isomorph
 from mpl_toolkits.mplot3d import Axes3D
 
 
