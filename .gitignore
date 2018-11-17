@@ -9,6 +9,7 @@ logs/
 mdtools/__pycache__/
 mdtools/legacy/
 mdtools/test_file.py
+symbols/
 
 # Ignoring build
 build/
