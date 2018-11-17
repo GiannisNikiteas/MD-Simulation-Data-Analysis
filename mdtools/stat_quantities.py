@@ -107,17 +107,18 @@ class StatQ(FileNaming):
         # return the plotting lists
         return self.r, self.rdf_data
 
-    def rdf_plot(self, rho, t, power, par_a, iso_scale=False, show_label=True):
+    def rdf_plot(self, rho, t, power, par_a, iso_scale=False, show_label=True, **kwargs):
         """
         Generates a plot of the Radial Distribution Data after it calls the rdf method
 
 
-        :param rho: Density
-        :param t: Temperature
-        :param power: Pair potential strength
-        :param par_a: Softening parameter
-        :param iso_scale: Optional, scales the values of r, the radius, based on the isosbestic model that
+        @param rho: Density
+        @param t: Temperature
+        @param power: Pair potential strength
+        @param par_a: Softening parameter
+        @param iso_scale: Optional, scales the values of r, the radius, based on the isosbestic model that
                           has been created
+        @param show_label:
         """
         self.rdf(rho, t, power, par_a, iso_scale)
         plt.figure('Interpolated RDF')
@@ -130,7 +131,8 @@ class StatQ(FileNaming):
             name = f"rho: {self.rho_str} T: {self.t_str}" \
                    f" n: {self.n_str} A: {self.a_str}"
 
-        plt.plot(self.r, self.rdf_data, '-', markersize=4, label=name)
+        plt.plot(self.r, self.rdf_data, '-',
+                 markersize=4, label=name, **kwargs)
 
         # Plot labels
         plt.xlabel(r"$r$", fontsize=16)
@@ -146,17 +148,21 @@ class StatQ(FileNaming):
             plt.legend(loc="best", fancybox=True, prop={'size': 8})
 
     # Velocity Autocorrelation Function
-    def vaf(self, rho, t, power, par_a, iso_scale=False):
+    def vaf(self, rho, t, power, par_a, iso_scale=False, **kwargs):
         """
-        Creates a figure for the Velocity Autocorrelation Function of the fluid, which illustrates
-        if the fluid remains a coupled system through time (correlated) or it uncouples.
+        Creates a figure for the Velocity Autocorrelation Function of the fluid,
+        which illustrates if the fluid remains a coupled system
+        through time (correlated) or it uncouples.
 
 
-        :param rho: Density
-        :param t: Temperature
-        :param power: Pair potential strength
-        :param par_a: Softening parameter
-        :return: Nothing. Simply adds a plot on the corresponding canvas
+        @param rho: Density
+        @param t: Temperature
+        @param power: Pair potential strength
+        @param par_a: Softening parameter
+        @param iso_scale:
+        @type iso_scale:
+        @return: Nothing. Simply adds a plot on the corresponding canvas
+
         """
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Data" + file_id + ".txt"
@@ -164,11 +170,6 @@ class StatQ(FileNaming):
         cr = np.loadtxt(data, usecols=8, delimiter='\t',
                         unpack=True, comments='#')
 
-        # Data normalisation for old data sets
-        # that were not natively normalised
-        # cr /= 3.0*t
-
-        # Measure the number of lines with data in file
         num_lines = int(len(cr))
 
         time_step = 0.005 / np.sqrt(t)
@@ -183,18 +184,18 @@ class StatQ(FileNaming):
         y = np.full(num_lines, 0)
 
         if iso_scale is True:
-            time = time * (rho ** (1.0 / 3.0)) * (t ** (0.5))
+            time = time * (rho ** (1.0 / 3.0)) * (t ** 0.5)
 
         plt.plot(time, y, '--', color='black')
-        plt.plot(time, cr, label=name)
+        plt.plot(time, cr, label=name, **kwargs)
         plt.xlabel(r"Time $t$", fontsize=16)
-        plt.ylabel(r"$C_v$", fontsize=16)
+        plt.ylabel(r"$C_r$", fontsize=16)
 
         plt.xlim(left=time[0], right=time[-1])
         plt.legend(loc="best", ncol=1)
 
     # Mean Square Displacement
-    def msd(self, rho, t, power, par_a):
+    def msd(self, rho, t, power, par_a, **kwargs):
         """
         Creates a figure which depicts the Mean Square Displacement for our fluid.
         According to diffusion theory the slope of the MSD corresponds to the inverse of the
@@ -213,33 +214,21 @@ class StatQ(FileNaming):
         msd_data = np.loadtxt(
             data, usecols=7, delimiter='\t', unpack=True)
 
-        # Measure lines filled with data
-        num_lines = 0
-        for line in open(data):
-            if line.startswith('#'):
-                continue
-            num_lines += 1
-
+        num_lines = int(len(msd_data))
         step = 0.005 / np.sqrt(t)
         x = np.linspace(0, num_lines - 1, num=num_lines)
 
-        # Regular coefs are calculated independent of the if loop
+        # Regular coefficients are calculated independent of the if loop
         gradient, intercept, r_value, p_value, std_err = stats.linregress(
             x, msd_data)
         self.dif_coef = np.append(self.dif_coef, gradient)
         self.dif_err = np.append(self.dif_err, std_err)
         self.dif_y_int = np.append(self.dif_y_int, intercept)
 
-        # TODO: this should be output to a log file for reference
-        # print('Diffusion coef: ', gradient, '\n',
-        #       'y-intercept: ', intercept, '\n',
-        #       'R value: ', r_value, '\n',
-        #       'Fit Error: ', std_err)
-
         name = f"rho: {self.rho_str} T: {self.t_str} n: {self.n_str} A: {self.a_str}"
 
         plt.figure('Mean Square Displacement')
-        plt.plot(x, msd_data, label=name)
+        plt.plot(x, msd_data, label=name, **kwargs)
         plt.xlim(left=0, right=x[-1])
         plt.xlabel(r"$t$", fontsize=16)
         plt.ylabel(r"$MSD$", fontsize=16)
@@ -321,7 +310,7 @@ class StatQ(FileNaming):
 
         plt.plot(lnspc, pdf_mb, label='Theory')
         plt.xlim(left=0)
-        plt.title(self.n_str + '~' + self.a_str)
+        plt.title(self.n_str + ' ' + self.a_str)
         plt.legend(loc='best', fancybox=True)
 
 
@@ -329,9 +318,9 @@ if __name__ == "__main__":
     import os
     import matplotlib.pyplot as plt
 
-    os.chdir("./examples/example_data")
+    os.chdir("/home/gn/Desktop/test_data")
 
-    obj = StatQ(5000, 1000)
+    obj = StatQ(15000, 1000)
     obj.rdf_plot(0.5, 0.5, 8, 0.5)
     obj.msd(0.5, 0.5, 8, 0.5)
     obj.vaf(0.5, 0.5, 8, 0.5)

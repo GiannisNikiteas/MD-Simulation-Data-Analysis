@@ -80,7 +80,7 @@ class RDFAnalysis(StatQ):
 
     def rdf_interpolate_plot(self, rho, t, power, par_a,
                              range_refinement=2000,
-                             iso_scale=False):
+                             iso_scale=False, **kwargs):
         """
         Generates a plot of the interpolated data after it calls rdf_interpolate
 
@@ -100,7 +100,7 @@ class RDFAnalysis(StatQ):
         plt.figure('Interpolated RDF')
 
         plt.plot(self.r_interp, self.rdf_interp,
-                 '-', label='interpolation ' + name)
+                 '-', label='interpolation ' + name, **kwargs)
         plt.plot([0, self.r_interp[-1]], [1, 1],
                  '--', color='black', linewidth=0.5)
 
@@ -116,7 +116,8 @@ class RDFAnalysis(StatQ):
     def rdf_interpolate_smooth_plot(self, rho, t, power, par_a,
                                     range_refinement=2000,
                                     iso_scale=False,
-                                    show_label=True):
+                                    show_label=True,
+                                    **kwargs):
         """
         Generates a plot of the smoothed and interpolated
         data after it calls rdf_interpolate
@@ -140,7 +141,7 @@ class RDFAnalysis(StatQ):
         plt.figure('Interpolated RDF')
 
         plt.plot(self.r_interp, self.rdf_interp_smooth,
-                 '-.', label='smooth interp ' + name)
+                 '-.', label='smooth interp ' + name, **kwargs)
         plt.plot([0, self.r_interp[-1]], [1, 1],
                  '--', color='black', linewidth=0.5)
 
@@ -356,12 +357,16 @@ class RDFAnalysis(StatQ):
                         r_iso, rdf_iso = self.rdf_intersect(
                             rho, t, n_list, a, r_lower=100)
 
-                        line_x = f"{rho}{delimiter}{t}{delimiter}{a}{delimiter}{r_iso}\n"
+                        line_x = f"{rho}{delimiter}" \
+                                 f"{t}{delimiter}" \
+                                 f"{a}{delimiter}{r_iso}\n"
                         line_x = line_x.replace('[', '')
                         line_x = line_x.replace(']', '')
                         line_x = line_x.replace(', ', delimiter)
 
-                        line_y = f"{rho}{delimiter}{t}{delimiter}{a}{delimiter}{rdf_iso}\n"
+                        line_y = f"{rho}{delimiter}{t}" \
+                                 f"{delimiter}{a}" \
+                                 f"{delimiter}{rdf_iso}\n"
                         line_y = line_y.replace('[', '')
                         line_y = line_y.replace(']', '')
                         line_y = line_y.replace(', ', delimiter)

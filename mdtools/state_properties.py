@@ -1,6 +1,6 @@
-from md.stat_quantities import FileNaming
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+from md.stat_quantities import FileNaming
 
 
 class StateProperties(FileNaming):
@@ -208,8 +208,6 @@ class StateProperties(FileNaming):
         file_id = self.file_searcher(rho, t, power)
         e_name = "AVGdata" + file_id + ".txt"
         # name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
-
-        num_lines = sum(1 for line in open(e_name))
 
         a, K, U, T = np.loadtxt(e_name, delimiter='\t',
                                 comments='#', usecols=(0, 2, 3, 4), unpack=True)
