@@ -4,8 +4,9 @@ from mdanalysistools.stat_quantities import FileNaming
 
 
 class StateProperties(FileNaming):
-    def __init__(self, step, particles):
-        super().__init__(step, particles)
+    def __init__(self, steps, particles):
+        super().__init__(steps, particles)
+        self.step = 0.005
         self.line_style = ['solid', 'dashed', 'dotted',
                            'dashdot']  # TODO: Fix with itertools
         self.p, self.c = 0, 0
@@ -13,30 +14,25 @@ class StateProperties(FileNaming):
 
     def energy_plots(self, rho, t, power, par_a):
         """
-        Creates a figure where the average kinetic, potential and total energy are displayed.
+        Plots the average kinetic, potential and total energy.
         Separately and in a combined graph.
-        :param rho: Density
-        :param t: Temperature
-        :param power: Pair potential strength
-        :param par_a: Softening parameter
-        :return: Nothing. Simply adds a plot on the corresponding canvas
+
+        @param rho: Density
+        @param t: Temperature
+        @param power: Pair potential strength
+        @param par_a: Softening parameter
+        @return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
         data = f"Data{file_id}.txt"
 
-        num_lines = 0
-        # Measuring the line number in a file ignoring comments
-        for line in open(data):
-            if line.startswith('#'):
-                continue
-            num_lines += 1
+        pot_en, kin_en = np.loadtxt(data, usecols=(3, 4),
+                                    delimiter='\t', comments='#', unpack=True)
+        num_lines = int(len(pot_en))
 
-        pot_en, kin_en = np.loadtxt(data, usecols=(
-            3, 4), delimiter='\t', comments='#', unpack=True)
         tot_en = pot_en + kin_en
         #  Plots the Energies
-        step = 0.005
-        time = num_lines * step
+        time = num_lines * self.step
         x = np.linspace(0, time, num_lines)
         fig = plt.figure('Energy Plots')
 
@@ -50,24 +46,24 @@ class StateProperties(FileNaming):
         kin_f.locator_params(axis='y', nbins=4), kin_f.set_ylim(top=4)
         pot_f.plot(x, pot_en, 'g')
         pot_f.locator_params(axis='y', nbins=3)
-        pot_f.set_ylabel("Energy units", size=16)
+        pot_f.set_ylabel("Energy units")
         tot_f.plot(x, tot_en, 'b')
         tot_f.locator_params(axis='y', nbins=4)
         tot_f.set_ylim(top=6)
 
         # x_r = time / 2 - time / 4
         # Kin.set_title('Individual Plots n = %d' %power, fontsize=17)
-        kin_f.set_title('Individual Plots', fontsize=17)
-        all_f.set_title('Energy Contributions', fontsize=17)
-        all_f.set_xlabel(r"Time $t$", fontsize=16)
+        kin_f.set_title('Individual Plots')
+        all_f.set_title('Energy Contributions')
+        all_f.set_xlabel(r"Time $t$")
 
-        tot_f.set_xlabel(r"Time $t$", fontsize=16)
+        tot_f.set_xlabel(r"Time $t$")
         fig.subplots_adjust(hspace=0)
 
         # Tick correction
         for ax in [kin_f, pot_f]:
             plt.setp(ax.get_xticklabels(), visible=False)
-            # The y-ticks will overlap with "hspace=0", so we'll hide the bottom tick
+            # The y-ticks will overlap with "hspace=0", hide the bottom tick
             ax.set_yticks(ax.get_yticks()[1:])
 
         all_f.plot(x, kin_en, 'r', x, pot_en, 'g', x, tot_en, 'b')
@@ -75,30 +71,24 @@ class StateProperties(FileNaming):
 
     def potential_data(self, rho, t, power, par_a):
         """
-        Creates plots for the visualisation of the average potential energy of the fluid.
-        :param rho: Density
-        :param t: Temperature
-        :param power: Pair potential strength
-        :param par_a: Softening parameter
-        :return: Nothing. Simply adds a plot on the corresponding canvas
+        Plots the average potential energy of the fluid.
+
+        @param rho: Density
+        @param t: Temperature
+        @param power: Pair potential strength
+        @param par_a: Softening parameter
+        @return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
         data = "Data" + file_id + ".txt"
 
-        num_lines = 0
-        for line in open(data):
-            if line.startswith('#'):
-                continue
-            num_lines += 1
-
-        rho_list, u = np.loadtxt(data, usecols=(
-            1, 3), delimiter='\t', comments='#', unpack=True)
+        rho_list, u = np.loadtxt(data, usecols=(1, 3),
+                                 delimiter='\t', comments='#', unpack=True)
+        num_lines = int(len(u))
 
         #  Plots the Energies
-        name = "rho: " + self.rho_str + "T: " + \
-               self.t_str + "n: " + self.n_str + "A: " + self.a_str
-        step = 0.005
-        time = num_lines * step
+        name = file_id.replace('_', ' ')
+        time = num_lines * self.step
         x = np.linspace(0, time, num_lines)
         plt.figure('Potential Plots of Data')
         plt.plot(rho_list, u, label=name)
@@ -110,20 +100,14 @@ class StateProperties(FileNaming):
 
         pc_data = np.loadtxt(pc_name, usecols=5, delimiter='\t',
                              comments='#', unpack=True)
-        num_lines = 0
-        for line in open(pc_name):
-            if line.startswith('#'):
-                continue
-            num_lines += 1
+        num_lines = int(len(pc_data))
 
-        time = num_lines * 0.005
-        xxx = np.linspace(0, time, num=num_lines)
+        time = num_lines * self.step
+        x = np.linspace(0, time, num=num_lines)
 
-        name = "rho: " + self.rho_str + "T: " + \
-               self.t_str + "n: " + self.n_str + "A: " + self.a_str
+        name = file_id.replace("_", " ")
         plt.figure('Configurational Pressure')
-
-        plt.plot(xxx, pc_data, label=name)
+        plt.plot(x, pc_data, label=name)
         plt.xlabel(r"Time $t$", size=18)
         plt.ylabel(r"Configurational Pressure $P_C$", size=18)
         plt.legend(loc="best", prop={'size': 12},
@@ -134,50 +118,45 @@ class StateProperties(FileNaming):
     # TODO: Probably these methods will not be static after fixing
     def avg_pressure(self, rho, t, power):
         """
-        Plots the average Configurational (virial) pressure of the fluid throughout
-        the entire simulation
-        :param rho:
-        :param t:
-        :param power:
-        :return:
+        Plots the average Configurational (virial) pressure.
+
+        @param rho:
+        @param t:
+        @param power:
+        @return:
         """
         file_id = self.file_searcher(rho, t, power)
         pc_name = "AVGdata" + file_id + ".txt"
         name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
 
-        num_lines = sum(1 for line in open(pc_name))
         a, pc = np.loadtxt(pc_name, delimiter='\t',
                            comments='#', usecols=(0, 5), unpack=True)
 
         plt.figure('Average Pressure')
         plt.plot(a, pc, '-o', label=name, markersize=3)
         plt.xlim(left=0, right=4.0)
-        # plt.title("Configurational Pressure for multiple Potentials")
-        plt.xlabel(r"$A$", size=16)
-        plt.ylabel(r"$P_c$", size=16)
+        plt.xlabel(r"$A$")
+        plt.ylabel(r"$P_c$")
         plt.legend(loc="best")
 
     def avg_kin(self, rho, t, power):
         """
-        Plots the average kinetic energy of the fluid throughout the entire simulation.
-        The kinetic energy is supposed to be constant since the fluid is placed in an
-        isothermal container, hence the deviations in kinetic energy can be used as an
-        error metric
-        :param rho: Density
-        :param t: Temperature
-        :param power: Pair potential strength
-        :return: Nothing. Simply adds a plot on the corresponding canvas
+        Plots the average kinetic energy of the fluid.
+
+        @param rho: Density
+        @param t: Temperature
+        @param power: Pair potential strength
+        @return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power)
         k_name = "AVGdata" + file_id + ".txt"
-        name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
 
         a, k = np.loadtxt(k_name, delimiter='\t', comments='#',
                           usecols=(0, 2), unpack=True)
 
+        name = file_id.replace("_", " ")
         plt.figure('Average Kinetic Energy')
         plt.plot(a, k, label=name)
-        plt.title("Kinetic Energy vs multiple values of A")
         plt.xlabel(r"Parameter A")
         plt.ylabel(r"Kinetic Energy $K$")
         plt.legend(loc="best")
@@ -185,29 +164,27 @@ class StateProperties(FileNaming):
     def avg_pot(self, rho, t, power):
         file_id = self.file_searcher(rho, t, power)
         u = "AVGdata" + file_id + ".txt"
-        name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
-
         a, k = np.loadtxt(u, delimiter='\t', comments='#',
                           usecols=(0, 3), unpack=True)
 
+        name = file_id.replace('_', ' ')
         plt.figure('Average Potential Energy')
         plt.plot(a, k, label=name)
-        plt.title("Potential Energy against parameter A")
         plt.xlabel(r"Parameter A")
         plt.ylabel(r"Potential Energy $U$")
         plt.legend(loc="best")
 
     def avg_en(self, rho, t, power):
         """
-        Plots the average total energy of the fluid throughout the entire simulation
-        :param rho: Density
-        :param t: Temperature
-        :param power: Pair potential strength
-        :return: Nothing. Simply adds a plot on the corresponding canvas
+        Plots the average total energy of the fluid.
+
+        @param rho: Density
+        @param t: Temperature
+        @param power: Pair potential strength
+        @return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power)
         e_name = "AVGdata" + file_id + ".txt"
-        # name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
 
         a, K, U, T = np.loadtxt(e_name, delimiter='\t',
                                 comments='#', usecols=(0, 2, 3, 4), unpack=True)
@@ -219,14 +196,14 @@ class StateProperties(FileNaming):
         all_f = plt.subplot2grid((3, 2), (0, 1), rowspan=3)
 
         kin_f.plot(a, K, color='r')
-        kin_f.set_ylim(bottom=2.0), kin_f.locator_params(
-            axis='y', nbins=5, prune='lower')
+        kin_f.set_ylim(bottom=2.0)
+        kin_f.locator_params(axis='y', nbins=5, prune='lower')
         pot_f.plot(a, U, color='g')
-        pot_f.locator_params(
-            axis='y', nbins=4), pot_f.set_ylabel("Energy units")
+        pot_f.locator_params(axis='y', nbins=4)
+        pot_f.set_ylabel("Energy units")
         tot_f.plot(a, T, color='c')
-        tot_f.locator_params(axis='y', nbins=3), tot_f.locator_params(
-            axis='x', nbins=4)
+        tot_f.locator_params(axis='y', nbins=3)
+        tot_f.locator_params(axis='x', nbins=4)
         tot_f.set_xlabel(r"Parameter $A$")
 
         kin_f.set_title('Individual Plots for n = %d' % power, fontsize=14)
@@ -237,7 +214,7 @@ class StateProperties(FileNaming):
 
         for ax in [kin_f, pot_f]:
             plt.setp(ax.get_xticklabels(), visible=False)
-            # The y-ticks will overlap with "hspace=0", so we'll hide the bottom tick
+            # The y-ticks will overlap with "hspace=0", hide the bottom tick
             ax.set_yticks(ax.get_yticks()[1:])
 
         all_f.plot(a, K, 'r', a, U, 'g', a, T, 'c')

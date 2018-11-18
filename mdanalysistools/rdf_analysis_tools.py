@@ -23,18 +23,23 @@ class RDFAnalysis(StatQ):
                         ignore_zeroes=True):
         """
         It smooths the data using a forward-backward low-pass filter.
-        Then it interpolates linearly between the data provided for the RDF which in turn
-        makes possible to find the intersection point between the curves.
+        Then it interpolates linearly between the data provided for the RDF.
+        The standard deviation of the interpolated radii of the RDF are 
+        calculated for multiple values of n and the radii with the smallest
+        sigma(RDF) is the point of intersection.
 
 
-        :param rho: Density
-        :param t: Temperature
-        :param power: Pair potential strength
-        :param par_a: Softening parameter
-        :param range_refinement: The accuracy of the interpolated data
-        :param iso_scale: Choosing whether the RDF data will be scaled onto an isomorphic surface
-        :param ignore_zeroes: Ignores zeroes and close to zero values in the specified RDF array
-        :return: 3 numpy.arrays of the interpolated and smoothed RDF data
+        @param rho: Density
+        @param t: Temperature
+        @param power: Pair potential strength
+        @param par_a: Softening parameter
+        @param range_refinement: The accuracy of the interpolated data
+        @param iso_scale: RDF data will be scaled onto an isomorphic surface
+        @param ignore_zeroes: Ignores zeroes and close to zero values of the
+                              RDF data array. Usefull in cases where all the RDF
+                              data contain zeroes, which would register as an 
+                              intersection point
+        @return: 3 numpy.arrays of the interpolated and smoothed RDF data
         """
         self.rdf(rho, t, power, par_a, iso_scale)
         # Smooth the data before interpolating with a forward backward filter
@@ -66,7 +71,6 @@ class RDFAnalysis(StatQ):
 
         # Create a radius array with increased precision (number of bins)
         self.r_interp = np.linspace(self.r[0], self.r[-1], range_refinement)
-        # TODO: we lose one index at some point could be bc of slicing the upper boundary
         # Use the interpolation functions
         self.rdf_interp = f(self.r_interp)
         self.rdf_interp_smooth = f_smooth(self.r_interp)
@@ -85,16 +89,17 @@ class RDFAnalysis(StatQ):
         Generates a plot of the interpolated data after it calls rdf_interpolate
 
 
-        :param rho: Density
-        :param t: Temperature
-        :param power: Pair potential strength
-        :param par_a: Softening parameter
-        :param range_refinement: The accuracy of the interpolated data
+        @param rho: Density
+        @param t: Temperature
+        @param power: Pair potential strength
+        @param par_a: Softening parameter
+        @param range_refinement: The accuracy of the interpolated data
         """
         self.rdf_interpolate(rho, t, power, par_a, range_refinement, iso_scale)
 
         # Naming the curves
-        name = f"rho: {self.rho_str} T: {self.t_str} n: {self.n_str} A: {self.a_str}"
+        name = f"rho: {self.rho_str} T: {self.t_str}"\
+               f" n: {self.n_str} A: {self.a_str}"
         max_scaling = np.max(self.rdf_data)  # Scaling the plot to ymax
 
         plt.figure('Interpolated RDF')
@@ -123,11 +128,11 @@ class RDFAnalysis(StatQ):
         data after it calls rdf_interpolate
 
 
-        :param rho: Density
-        :param t: Temperature
-        :param power: Pair potential strength
-        :param par_a: Softening parameter
-        :param range_refinement: The accuracy of the interpolated data
+        @param rho: Density
+        @param t: Temperature
+        @param power: Pair potential strength
+        @param par_a: Softening parameter
+        @param range_refinement: The accuracy of the interpolated data
         """
         self.rdf_interpolate(rho, t, power, par_a, range_refinement, iso_scale)
 
@@ -160,35 +165,41 @@ class RDFAnalysis(StatQ):
                       r_lower=0, r_higher=-1,
                       intersections=1):
         """
-        Finds the points of intersection in RDF functions by looping through multiple ns.
-        The RDF data are first smoothed with a forward-backward filter in order to reduce
-        the noise and then the data are then interpolated linearly.
-        An intersection between curves is quantified as the minimum in the standard
-        deviation at the same index gr[i] but for multiple curves. At an intersection,
-        the std is theoretically at a minimum.
+        Finds points of intersection in RDF by looping through multiple ns.
+        The RDF data are first smoothed with a forward-backward filter 
+        in order to reduce the noise and then interpolated linearly.
+        An intersection between curves is quantified as the minimum in the 
+        standard deviation at the same index gr[i] but for multiple curves. 
+        At an intersection, the std is theoretically at a minimum.
 
-        The points of inflection are identified on the last curve passed on the method,
-        which in turn splits the RDF data into regions. In every region between a max-min
-        an intersection point is sought (although for some extreme cases that is not entirely true).
+        The points of inflection (local min and max) are identified 
+        on the last curve passed on the method. This in turn splits the RDF data
+        into regions. In every region between a max-min an intersection point is
+        sought (although for some extreme cases that is not entirely true).
+        e.g. from n = [8, 10, 12], on the curve with n = 12, 
+        the inflection points will be located and between these points 
+        an intersection will be sought for all curves.
 
-        Worth remembering is that smoothing the data results into the introduction of unwanted
-        inflection points, near neighbourhoods where the data do not fluctuate much.
+        Worth remembering is that smoothing the data results into 
+        the introduction of unwanted inflection points, near neighbourhoods 
+        where the data do not fluctuate much.
 
 
-        :param rho: Density
-        :param t: Temperature
-        :param power_list: List of pair potential strengths
-        :param par_a: Softening parameter
-        :param range_refinement: The accuracy of the interpolated data
-        :param r_lower: Specifies the lower bound of the array that
+        @param rho: Density
+        @param t: Temperature
+        @param power_list: List of pair potential strengths
+        @param par_a: Softening parameter
+        @param range_refinement: The accuracy of the interpolated data
+        @param r_lower: Specifies the lower bound of the array that
                         the method will look for intersections.
                         It should be provided in terms of indices
-        :param r_higher: Specifies the upper bound of the array that
+        @param r_higher: Specifies the upper bound of the array that
                          the method will look for intersections.
                          It should be provided in terms of indices
-        :param intersections: Number of intersections to look for between a max and a min
-        :return: A plot with the interpolated and smoothed RDF
-                 along with the local max, min, and isosbestic (intersection) points
+        @param intersections: Number of intersections to look 
+                              for in range gr[min-max]
+        @return: A plot with the interpolated and smoothed RDF
+                 along with the local max, min, and intersection points
         """
         # Passing the smoothed RDF data into a list of lists
         rdf_interp_list = []
@@ -293,13 +304,13 @@ class RDFAnalysis(StatQ):
     @staticmethod
     def find_local_min_max(x, y):
         """
-        Finds the local minima and maxima and their indices. Assuming that x and y
-        have the same dimensions
+        Finds the local minima and maxima and their indices.
+        Assuming that x and y have the same dimensions.
 
 
-        :param x: The x variable array
-        :param y: The y variable array
-        :return: x_max, y_max, x_min, y_min, idx_max, idx_min.
+        @param x: The x variable array
+        @param y: The y variable array
+        @return: x_max, y_max, x_min, y_min, idx_max, idx_min.
                  The x-y coordinates for the maxima and minima.
                  Along with their indices so that the max, min values
                  can be further used
@@ -335,15 +346,16 @@ class RDFAnalysis(StatQ):
                                   filename,
                                   delimiter='\t'):
         """
-        Writes the isosbestic points coordinates (r_iso and rdf_iso) to two different files
+        Writes the isosbestic points coordinates 
+        (r_iso and rdf_iso) to two different files.
 
 
-        :param rho_list: list of densities
-        :param t_list: list of temperatures
-        :param n_list: list of pair potential strenghts
-        :param a_list: list of softening parameters
-        :param filename: Output filename/ directory
-        :param delimiter: string that separates the data in the files
+        @param rho_list: list of densities
+        @param t_list: list of temperatures
+        @param n_list: list of pair potential strengths
+        @param a_list: list of softening parameters
+        @param filename: Output filename/ directory
+        @param delimiter: string that separates the data in the files
         """
 
         x_iso = f"{filename}/r_iso.dat"
