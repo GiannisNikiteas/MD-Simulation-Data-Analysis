@@ -1,5 +1,5 @@
 import numpy as np
-from mdanalysistools import StatQ
+from mdtools import StatQ
 from scipy import interpolate
 import matplotlib.pyplot as plt
 from scipy.signal import argrelextrema, butter, filtfilt
