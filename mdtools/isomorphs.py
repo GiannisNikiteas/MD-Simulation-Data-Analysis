@@ -1,3 +1,5 @@
+import numpy as np
+
 class Isomorph:
     """
     Isomorph state generator for fluid transitioning from MD to continuum limit
@@ -56,3 +58,23 @@ class Isomorph:
         rho2 = self.get_rho(self.rho_r, self.t_r, t2, n)
         a2 = self.get_a(self.a_r, self.rho_r, rho2)
         return rho2, t2, a2
+
+
+def iso_surface(rho_list, t_r, a_r, t2, n):
+    """
+    Produces the 2D lists needed to plot a surface
+    """
+    rho_iso = np.empty((0, len(t2)))
+    t_iso = np.empty((0, len(t2)))
+    a_iso = np.empty((0, len(t2)))
+
+    for rho_r in rho_list:
+        iso = Isomorph(rho_r, t_r, a_r, t2)
+        # Generate isomorphic line
+        rho2, a2 = iso.gen_line(n)
+
+        # Creating the 3D mesh grid
+        rho_iso = np.append(rho_iso, [rho2], axis=0)
+        t_iso = np.append(t_iso, [t2], axis=0)
+        a_iso = np.append(a_iso, [a2], axis=0)
+    return rho_iso, t_iso, a_iso

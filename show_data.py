@@ -43,6 +43,9 @@ rdf_stat.get_intersections_to_file(rho, t, n, a, "/home/gn/Desktop/iso_ver")
 for temp in t:
     for density in rho:
         rdf_stat.plot_intersection(density, temp)
+    az = np.linspace(0, 1, 500)
+    tr = (1 - az**2)**(1./2.)
+    plt.plot(az, tr, color='red', linewidth='3')
     plt.show()
 
 os.chdir("/home/gn/Desktop/iso_ver/unoptimised")
@@ -52,4 +55,7 @@ rdf_stat.get_intersections_to_file(
 for temp in t:
     for density in rho:
         rdf_stat.plot_intersection(density, temp)
+    az = np.linspace(0, 1, 500)
+    tr = (1 - az**2)**(1./2.)
+    plt.plot(az, tr, color='red', linewidth='3')
     plt.show()

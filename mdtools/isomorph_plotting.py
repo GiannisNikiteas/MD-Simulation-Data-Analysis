@@ -25,27 +25,19 @@ surface higher up. When A0 = 0, then the figure is collapsed on the rho-T axis
 """
 
 
-def isomorphic_surface_array(rho_list, t_list, n_list, a_list, t2, figname, save_fig=False, save_pickle=False):
+def isomorphic_surface_array(rho_list, t_list, n_list, a_list, t2,
+                             figname, save_fig=False, save_pickle=False):
     """
 
     @param rho_list:
-    @type rho_list: ndarray
     @param t_list:
-    @type t_list: ndarray
     @param n_list:
-    @type n_list: ndarray
     @param a_list:
-    @type a_list: ndarray
     @param t2:
-    @type t2: ndarray
     @param figname:
-    @type figname: basestring
     @param save_fig:
-    @type save_fig: bool
     @param save_pickle:
-    @type save_pickle: bool
     @return:
-    @rtype: ndarray[ndarray]
     """
 
     # Generate the 3D plot canvas here
@@ -182,7 +174,7 @@ if __name__ == "__main__":
 
     # Change directory to where files will be saved and loaded from
     os.chdir("/home/gn/Desktop/surface_figures")
-    # List that contains a copy of the figure names, 
+    # List that contains a copy of the figure names,
     # that will be loaded into the load_pickle function
     # to resume the figures to their normal state without having to re-plot them
     fig_names = ["Isomorphs_with_varying_T0",
