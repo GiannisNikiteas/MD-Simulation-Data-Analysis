@@ -17,10 +17,10 @@ class RDFAnalysis(StatQ):
         self.rdf_interp = []
         self.rdf_interp_smooth = []
 
-    def rdf_interpolate(self, rho, t, power, par_a,
-                        range_refinement=2000,
-                        iso_scale=False,
-                        ignore_zeroes=True):
+    def rdf_interpolate_smooth(self, rho, t, power, par_a,
+                               range_refinement=2000,
+                               iso_scale=False,
+                               ignore_zeroes=True):
         """
         It smooths the data using a forward-backward low-pass filter.
         Then it interpolates linearly between the data provided for the RDF.
@@ -82,42 +82,6 @@ class RDFAnalysis(StatQ):
         self.interpolated_data.append(self.rdf_interp)
         return self.r_interp, self.rdf_interp, self.rdf_interp_smooth
 
-    def rdf_interpolate_plot(self, rho, t, power, par_a,
-                             range_refinement=2000,
-                             iso_scale=False, **kwargs):
-        """
-        Generates a plot of the interpolated data after it calls rdf_interpolate
-
-
-        @param rho: Density
-        @param t: Temperature
-        @param power: Pair potential strength
-        @param par_a: Softening parameter
-        @param range_refinement: The accuracy of the interpolated data
-        """
-        self.rdf_interpolate(rho, t, power, par_a, range_refinement, iso_scale)
-
-        # Naming the curves
-        name = f"rho: {self.rho_str} T: {self.t_str}"\
-               f" n: {self.n_str} A: {self.a_str}"
-        max_scaling = np.max(self.rdf_data)  # Scaling the plot to ymax
-
-        plt.figure('Interpolated RDF')
-
-        plt.plot(self.r_interp, self.rdf_interp,
-                 '-', label='interpolation ' + name, **kwargs)
-        plt.plot([0, self.r_interp[-1]], [1, 1],
-                 '--', color='black', linewidth=0.5)
-
-        # Plot limits and legends
-        plt.xlim(left=0, right=3)
-        plt.ylim(bottom=0, top=max_scaling + 0.1)
-
-        # Plot labels
-        plt.xlabel(r"$r$", fontsize=16)
-        plt.ylabel(r"$g(r)$", fontsize=16)
-        plt.legend(loc="best", fancybox=True, prop={'size': 8})
-
     def rdf_interpolate_smooth_plot(self, rho, t, power, par_a,
                                     range_refinement=2000,
                                     iso_scale=False,
@@ -134,7 +98,7 @@ class RDFAnalysis(StatQ):
         @param par_a: Softening parameter
         @param range_refinement: The accuracy of the interpolated data
         """
-        self.rdf_interpolate(rho, t, power, par_a, range_refinement, iso_scale)
+        self.rdf_interpolate_smooth(rho, t, power, par_a, range_refinement, iso_scale)
 
         # Naming the curves
         name = ''
@@ -205,7 +169,7 @@ class RDFAnalysis(StatQ):
         rdf_interp_list = []
         for n in power_list:
             # calls rdf internally, and initialises r_interp list
-            self.rdf_interpolate(rho, t, n, par_a, range_refinement)
+            self.rdf_interpolate_smooth(rho, t, n, par_a, range_refinement)
             # Selecting only the required range of smooth interpolated rdf values
             sliced_rdf_data = self.rdf_interp_smooth[r_lower:r_higher]
             rdf_interp_list.append(sliced_rdf_data)
@@ -368,7 +332,11 @@ class RDFAnalysis(StatQ):
                     for a in a_list:
                         r_iso, rdf_iso = self.rdf_intersect(
                             rho, t, n_list, a, r_lower=100)
+                        # ! TODO: see every r_iso used for debug
+                        # print(f"rho {rho} T: {t} A: {a}")
+                        # plt.show()
 
+                        # Clean data before writting to file
                         line_x = f"{rho}{delimiter}" \
                                  f"{t}{delimiter}" \
                                  f"{a}{delimiter}{r_iso}\n"
