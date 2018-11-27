@@ -25,7 +25,7 @@ class FileNaming(object):
         """
         self.rho_str = "{:.4f}".format(rho)
         self.t_str = "{:.4f}".format(t)
-        self.n_str = str(n)
+        self.n_str = "{:.2f}".format(n)
         a = None
         if alpha is not None:
             self.a_str = "{:.5f}".format(alpha)
