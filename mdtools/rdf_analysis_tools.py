@@ -110,7 +110,7 @@ class RDFAnalysis(StatQ):
         plt.figure('Interpolated RDF')
 
         plt.plot(self.r_interp, self.rdf_interp_smooth,
-                 '-.', label='smooth interp ' + name, **kwargs)
+                 '-.', label='smooth ' + name, **kwargs)
         plt.plot([0, self.r_interp[-1]], [1, 1],
                  '--', color='black', linewidth=0.5)
 

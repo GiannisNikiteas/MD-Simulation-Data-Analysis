@@ -127,7 +127,8 @@ class StateProperties(FileNaming):
         """
         file_id = self.file_searcher(rho, t, power)
         pc_name = "AVGdata" + file_id + ".txt"
-        name = "rho: " + self.rho_str + "T: " + self.t_str + "n: " + self.n_str
+        name = f"\N{GREEK SMALL LETTER RHO}: {self.rho_str} " \
+               f"T: {self.t_str} n: {self.n_str}"
 
         a, pc = np.loadtxt(pc_name, delimiter='\t',
                            comments='#', usecols=(0, 5), unpack=True)

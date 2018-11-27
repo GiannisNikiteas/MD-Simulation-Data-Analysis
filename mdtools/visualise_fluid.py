@@ -14,6 +14,7 @@ class ParticleVisualisation(FileNaming):
         """
         Creates a 3D plot for the particles in the fluid.
         The colormap depicts the z-position of the particle.
+
         :param rho: Density
         :param t: Temperature
         :param power: Pair potential strength
@@ -25,8 +26,9 @@ class ParticleVisualisation(FileNaming):
 
         rx, ry, rz = np.loadtxt(data, usecols=(0, 1, 2), delimiter='\t',
                                 comments='#', unpack=True)
-        name = "rho: " + self.rho_str + "T: " + \
-               self.t_str + "n: " + self.n_str + "A: " + self.a_str
+        name = f"\N{GREEK SMALL LETTER RHO}: {self.rho_str} T: {self.t_str}" \
+               f" n: {self.n_str} A: {self.a_str}"
+
         fig = plt.figure('3D Scatter Plot')
         ax = fig.add_subplot(111, projection='3d')
         s = ax.scatter(rx, ry, rz, c=rz, cmap='gnuplot_r', label=name)
@@ -36,7 +38,8 @@ class ParticleVisualisation(FileNaming):
     def vector_field(self, rho, t, power, par_a):
         """
         Creates a 2D projection of the of the loaded files of the fluid for
-        position and velocities
+        position and velocities.
+
         :param rho: Density
         :param t: Temperature
         :param power: Pair potential strength
@@ -53,9 +56,10 @@ class ParticleVisualisation(FileNaming):
                                             comments='#',
                                             unpack=True)
 
+        name = f"\N{GREEK SMALL LETTER RHO}: {self.rho_str} T: {self.t_str}" \
+               f" n: {self.n_str} A: {self.a_str}"
+
         plt.figure('2D Vector Field of particles')
-        name = "rho: " + self.rho_str + "T: " + \
-               self.t_str + "n: " + self.n_str + "A: " + self.a_str
         q = plt.quiver(rx, ry, vx, vy, rz, pivot='mid',
                        cmap=cm.get_cmap('gnuplot_r'), alpha=0.75, label=name)
         # plt.scatter(rx, ry, alpha=0.4, label=name)
@@ -66,7 +70,8 @@ class ParticleVisualisation(FileNaming):
     def vector_field_3d(self, rho, t, power, par_a):
         """
         Creates a 3D projection based on the last iteration of the MD algorithm
-        of the fluids last position and velocities on a vector map
+        of the fluids last position and velocities on a vector map.
+
         :param rho: Density
         :param t: Temperature
         :param power: Pair potential strength
@@ -82,11 +87,12 @@ class ParticleVisualisation(FileNaming):
                                             delimiter='\t',
                                             comments='#',
                                             unpack=True)
+
+        name = f"\N{GREEK SMALL LETTER RHO}: {self.rho_str} T: {self.t_str}" \
+               f" n: {self.n_str} A: {self.a_str}"
         fig = plt.figure('3D Vector Field of particles')
         ax = fig.gca(projection='3d')
         # v = np.sqrt(vx**2 + vy**2 + vz**2)
-        name = "rho: " + self.rho_str + "T: " + \
-               self.t_str + "n: " + self.n_str + "A: " + self.a_str
         # x[startAt:endBefore:skip]
         stride = 1
         ax.view_init(elev=18, azim=30)  # camera elevation and angle
