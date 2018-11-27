@@ -89,10 +89,7 @@ class StatQ(FileNaming):
         # Calculate the number of bins present in RDF
         self.rdf_bins = int(len(self.rdf_data))
 
-        # Number of particles
-        particles = int(self.p_str)
-        # Cut off radius
-        self.rg = 3.0
+        # Bin width in r-units
         self.dr = self.rg / self.rdf_bins
 
         # r=0 is intentionally neglected due to division by 0
@@ -133,8 +130,8 @@ class StatQ(FileNaming):
         # Naming the curves
         name = ""
         if show_label is True:
-            name = f"rho: {self.rho_str} T: {self.t_str}" \
-                   f" n: {self.n_str} A: {self.a_str}"
+            name = f"\N{GREEK SMALL LETTER RHO}: {self.rho_str}" \
+                   f" T: {self.t_str} n: {self.n_str} A: {self.a_str}"
 
         plt.plot(self.r, self.rdf_data, '-',
                  markersize=4, label=name, **kwargs)
@@ -178,7 +175,7 @@ class StatQ(FileNaming):
         time_max = time_step * num_lines
         time = np.linspace(0, time_max, num_lines)
 
-        name = f"rho: {self.rho_str} T: {self.t_str}"\
+        name = f"\N{GREEK SMALL LETTER RHO}: {self.rho_str} T: {self.t_str}"\
                f"n: {self.n_str} A: {self.a_str}"
 
         plt.figure('Velocity Autocorrelation Function')
@@ -311,6 +308,7 @@ class StatQ(FileNaming):
         plt.xlim(left=0)
         plt.title(self.n_str + ' ' + self.a_str)
         plt.legend(loc='best', fancybox=True)
+
 
 if __name__ == "__main__":
     import os
