@@ -16,8 +16,8 @@ a = [0, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]   # 0.1, 0.5
 # Generating the RDF intersection data
 # ! this generates the RDF Interpolate plot
 rdf_stat = RDFAnalysis(35000, 1000)
-r_iso_dir = "/home/gn/Desktop/test_data/long"
-if not os.path.exists(f"{r_iso_dir}/r_iso.dat"):
+r_iso_dir = "/home/gn/Desktop/test_data/long/"
+if not os.path.exists(f"{r_iso_dir}r_iso.dat"):
     rdf_stat.get_intersections_to_file(rho, t, n, a, r_iso_dir)
 
 

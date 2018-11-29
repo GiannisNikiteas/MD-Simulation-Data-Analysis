@@ -98,13 +98,14 @@ class RDFAnalysis(StatQ):
         @param par_a: Softening parameter
         @param range_refinement: The accuracy of the interpolated data
         """
-        self.rdf_interpolate_smooth(rho, t, power, par_a, range_refinement, iso_scale)
+        self.rdf_interpolate_smooth(
+            rho, t, power, par_a, range_refinement, iso_scale)
 
         # Naming the curves
         name = ''
         if show_label is True:
-            name = f"rho: {self.rho_str} T: {self.t_str}" \
-                   f" n: {self.n_str} A: {self.a_str}"
+            name = f"\N{GREEK SMALL LETTER RHO}: {self.rho_str[:3]} "\
+                   f"T: {self.t_str[0]} n: {self.n_str[:3]} A: {self.a_str[:4]}"
         max_scaling = np.max(self.rdf_data)  # Scaling the plot to ymax
 
         plt.figure('Interpolated RDF')
@@ -115,7 +116,7 @@ class RDFAnalysis(StatQ):
                  '--', color='black', linewidth=0.5)
 
         # Plot limits and legends
-        plt.xlim(left=0, right=3)
+        plt.xlim(left=0, right=self.rg)
         plt.ylim(bottom=0, top=max_scaling + 0.1)
 
         # Plot labels
@@ -322,8 +323,8 @@ class RDFAnalysis(StatQ):
         @param delimiter: string that separates the data in the files
         """
 
-        x_iso = f"{filename}/r_iso.dat"
-        y_iso = f"{filename}/rdf_iso.dat"
+        x_iso = f"{filename}r_iso.dat"
+        y_iso = f"{filename}rdf_iso.dat"
         with open(x_iso, 'w+') as f_x, open(y_iso, 'w+') as f_y:
             f_x.write('rho\tT\ta\tr_iso\n')
             f_y.write('rho\tT\ta\tr_iso\n')
@@ -333,8 +334,8 @@ class RDFAnalysis(StatQ):
                         r_iso, rdf_iso = self.rdf_intersect(
                             rho, t, n_list, a, r_lower=100)
                         # ! TODO: see every r_iso used for debug
-                        # print(f"rho {rho} T: {t} A: {a}")
-                        # plt.show()
+                        print(f"rho {rho} T: {t} A: {a}")
+                        plt.show()
 
                         # Clean data before writting to file
                         line_x = f"{rho}{delimiter}" \
@@ -354,9 +355,9 @@ class RDFAnalysis(StatQ):
                         f_x.write(line_x)
                         f_y.write(line_y)
 
-    def plot_intersection(self, rho, t):
+    def plot_intersection(self, rho, t, fname='r_iso.dat'):
         # Read rho and T from file if it matches rho and T read
-        data = "r_iso.dat"
+        data = f"{fname}"
         rho_list, t_list, a_list, r_iso_list = np.loadtxt(
             data, usecols=(0, 1, 2, 3), unpack=True, skiprows=1)
 
