@@ -355,12 +355,14 @@ class RDFAnalysis(StatQ):
                         f_x.write(line_x)
                         f_y.write(line_y)
 
-    def plot_intersection(self, rho, t, fname='r_iso.dat'):
+    def plot_intersection(self, rho, t, fname='r_iso.dat', **kwargs):
         # Read rho and T from file if it matches rho and T read
         data = f"{fname}"
         rho_list, t_list, a_list, r_iso_list = np.loadtxt(
             data, usecols=(0, 1, 2, 3), unpack=True, skiprows=1)
 
+        # Keep only relevant data from file.
+        # Probably there is an easier way of doing it
         indices = [i for i, x in enumerate(t_list) if x == t]
         rho_list = rho_list[indices]
         t_list = t_list[indices]
@@ -372,7 +374,8 @@ class RDFAnalysis(StatQ):
         t_list = t_list[indices]
         a_list = a_list[indices]
         r_iso_list = r_iso_list[indices]
+
         plt.figure(f"r_iso Intersections with T: {t}")
         name = fr"$\rho$: {rho}  T: {t}"
-        plt.scatter(a_list, r_iso_list, label=name)
+        plt.plot(a_list, r_iso_list, label=name, **kwargs)
         plt.legend(loc="best")
