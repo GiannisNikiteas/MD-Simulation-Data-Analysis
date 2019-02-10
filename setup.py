@@ -11,7 +11,7 @@ setup(
     packages=['mdtools'],
     url='https://github.com/GiannisNikiteas/MD-Simulation-Data-Analysis',
     license='',
-    author='Giannis Nikiteas',
+    author='GNikit',
     author_email='giannis_nikiteas@hotmail.com',
     description='A package responsible for Molecular Dynamics data analysis',
     long_description=LONG_DESC,
