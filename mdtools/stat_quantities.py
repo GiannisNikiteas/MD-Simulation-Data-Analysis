@@ -309,22 +309,30 @@ class StatQ(FileNaming):
         plt.title(self.n_str + ' ' + self.a_str)
         plt.legend(loc='best', fancybox=True)
 
+    def sf(self, rho, t, power, par_a):
+        file_id = self.file_searcher(rho, t, power, par_a)
+        data = "Data" + file_id + ".txt"
+        name = f"n: {self.n_str} A: {self.a_str}"
+        
+        sf = np.loadtxt(data, usecols=(9, 10, 11),
+                        delimiter='\t', comments='#', unpack=True)
 
+        x = np.arange(1, len(sf[0])+1)
+
+        fig, ax = plt.subplots(3, 1, figsize=(12, 6))
+
+        for (i, sf_i) in enumerate(sf):
+            ax[i].scatter(x, sf[i], label=i)
+            ax[i].set(xlabel='Steps', ylabel='SF')
+            ax[i].legend(loc='best')
+        ax[0].set_title(f'Structure Factor {file_id}')
+
+# %%
 if __name__ == "__main__":
+
     import os
+    from mdtools.stat_quantities import *
     import matplotlib.pyplot as plt
 
-    os.chdir("/home/gn/Desktop/test_data")
+    plt.style.use('default')
 
-    obj = StatQ(15000, 1000)
-    obj.rdf_plot(0.5, 0.5, 8, 0.5)
-    obj.msd(0.5, 0.5, 8, 0.5)
-    obj.vaf(0.5, 0.5, 8, 0.5)
-    obj.vel_dist(0.5, 0.5, 8, 0.5)
-
-    N = [6, 7, 8, 9, 10, 12]
-    RHO = [0.3, 0.5, 1.0, 1.5]
-    T = [0.5, 1.0, 2.0]
-    A = [0, 0.25, 0.50, 0.75, 0.8, 0.90]
-
-    plt.show()
