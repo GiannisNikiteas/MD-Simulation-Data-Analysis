@@ -22,7 +22,7 @@ print(os.chdir("simulation_data"))
 rdf_stat = RDFAnalysis(35000, 1000)
 r_iso_dir = "."
 if not os.path.exists(f"{r_iso_dir}/r_iso.dat"):
-    rdf_stat.get_intersections_to_file(rho, t, n, a, r_iso_dir)
+    rdf_stat.get_intersections_to_file("", rho, t, n, a, r_iso_dir)
 
 
 # Plot the intersection points r_iso vs a

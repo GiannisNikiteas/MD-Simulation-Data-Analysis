@@ -10,19 +10,20 @@ class ParticleVisualisation(FileNaming):
         super().__init__(steps, particles)
         # Do some initialisation here if needed
 
-    def particle_plot(self, rho, t, power, par_a):
+    def particle_plot(self, sim_name, rho, t, power=None, par_a=None):
         """
         Creates a 3D plot for the particles in the fluid.
         The colormap depicts the z-position of the particle.
 
-        :param rho: Density
-        :param t: Temperature
-        :param power: Pair potential strength
-        :param par_a: Softening parameter
-        :return: Nothing. Simply adds a plot on the corresponding canvas
+        @:param sim_name: simulation name used as the prefix in the log files
+        @:param rho: Density
+        @:param t: Temperature
+        @:param power: Pair potential strength
+        @:param par_a: Softening @:parameter
+        @:return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = "Positions_Velocities" + file_id + ".txt"
+        data = f"{sim_name}Positions_Velocities{file_id}.txt"
 
         rx, ry, rz = np.loadtxt(data, usecols=(0, 1, 2), delimiter='\t',
                                 comments='#', unpack=True)
@@ -35,19 +36,20 @@ class ParticleVisualisation(FileNaming):
         plt.colorbar(s)
         plt.legend(loc='best', fancybox=True)
 
-    def vector_field(self, rho, t, power, par_a):
+    def vector_field(self, sim_name, rho, t, power=None, par_a=None):
         """
         Creates a 2D projection of the of the loaded files of the fluid for
         position and velocities.
 
-        :param rho: Density
-        :param t: Temperature
-        :param power: Pair potential strength
-        :param par_a: Softening parameter
-        :return: Nothing. Simply adds a plot on the corresponding canvas
+        @:param sim_name: simulation name used as the prefix in the log files
+        @:param rho: Density
+        @:param t: Temperature
+        @:param power: Pair potential strength
+        @:param par_a: Softening @:parameter
+        @:return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = "Positions_Velocities" + file_id + ".txt"
+        data = f"{sim_name}Positions_Velocities{file_id}.txt"
 
         rx, ry, rz, vx, vy, vz = np.loadtxt(data,
                                             # redundant
@@ -67,19 +69,20 @@ class ParticleVisualisation(FileNaming):
         plt.legend(loc="best")
 
     # 3D visualisation of the fluid with vector arrows
-    def vector_field_3d(self, rho, t, power, par_a):
+    def vector_field_3d(self, sim_name, rho, t, power=None, par_a=None):
         """
         Creates a 3D projection based on the last iteration of the MD algorithm
         of the fluids last position and velocities on a vector map.
 
-        :param rho: Density
-        :param t: Temperature
-        :param power: Pair potential strength
-        :param par_a: Softening parameter
-        :return: Nothing. Simply adds a plot on the corresponding canvas
+        @:param sim_name: simulation name used as the prefix in the log files
+        @:param rho: Density
+        @:param t: Temperature
+        @:param power: Pair potential strength
+        @:param par_a: Softening @:parameter
+        @:return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = "Positions_Velocities" + file_id + ".txt"
+        data = f"{sim_name}Positions_Velocities{file_id}.txt"
 
         rx, ry, rz, vx, vy, vz = np.loadtxt(data,
                                             # redundant

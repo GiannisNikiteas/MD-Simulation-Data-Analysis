@@ -12,32 +12,40 @@ class FileNaming(object):
         self.n_str = None
         self.a_str = None
 
-    def file_searcher(self, rho, t, n, alpha=None):
+    def file_searcher(self, rho, t, n=None, alpha=None):
         """
         Constructs the file signature of the MD simulation
         in order for the information to be read
 
-        :param rho: density
-        :param t:   temperature
-        :param n:   potential strength
-        :param alpha:   softness parameter
-        :return: string with file identifier
+        @:param rho: density
+        @:param t:   temperature
+        @:param n:   potential strength
+        @:param alpha:   softness parameter
+        @:return: string with file identifier
         """
         self.rho_str = "{:.4f}".format(rho)
         self.t_str = "{:.4f}".format(t)
-        self.n_str = "{:.2f}".format(n)
-        a = None
+
+        n_num = ""
+        if n is not None:
+            self.n_str = "{:.2f}".format(n)
+            n_num = f"_n_{self.n_str}"
+
+        a = ""
         if alpha is not None:
             self.a_str = "{:.5f}".format(alpha)
-            a = '_A_' + self.a_str
-        else:
-            self.a_str = ""
-            a = self.a_str
+            a = f"_A_{self.a_str}"
 
         name_id = f"_step_{self.steps_str}_particles_{self.p_str}" \
-                  f"_rho_{self.rho_str}_T_{self.t_str}_n_{self.n_str}{a}"
+                  f"_rho_{self.rho_str}_T_{self.t_str}{n_num}{a}"
+
         return name_id
 
+    @staticmethod
+    def get_label(file_id):
+        name = file_id.replace("_", " ")
+        name = name.replace("rho", "\N{GREEK SMALL LETTER RHO}")
+        return name
 
 class StatQ(FileNaming):
 
@@ -59,30 +67,30 @@ class StatQ(FileNaming):
         self.line_it = 0  # Index iterator for line styles
 
         # RDF shared variables
-        self.r = []         # container for the rdf-x data
+        self.r = []  # container for the rdf-x data
         self.rdf_data = []  # container for the rdf y-data
         self.rdf_bins = 0  # number of lines filled with data in the rdf file
-        self.rg = 3.0   # cut-off radius
-        self.dr = 0     # distance increment in the radius
-        self.iso = 0    # x-location for the theoretical isosbestic points
+        self.rg = 3.0  # cut-off radius
+        self.dr = 0  # distance increment in the radius
+        self.iso = 0  # x-location for the theoretical isosbestic points
 
     # Radial Distribution Function
-    def rdf(self, rho, t, power, par_a, iso_scale=False):
+    def rdf(self, sim_name, rho, t, power=None, par_a=None, iso_scale=False):
         """
         Reads the data corresponding to the Radial Distribution Function from
         file.
 
-        @param rho: Density
-        @param t: Temperature
-        @param power: Pair potential strength
-        @param par_a: Softening parameter
-        @param iso_scale: Optional, scales the values of r, the radius, 
+        @:param rho: Density
+        @:param t: Temperature
+        @:param power: Pair potential strength
+        @:param par_a: Softening parameter
+        @:param iso_scale: Optional, scales the values of r, the radius,
                           based on the isosbestic model that has been created
-        @return: The numpy.array for the RDF data
+        @:return: The numpy.array for the RDF data
 
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = f"RDF{file_id}.txt"
+        data = f"{sim_name}RDF{file_id}.txt"
         # self.rdf_bins = sum(1 for line in open(data))
         self.rdf_data = np.loadtxt(data, delimiter="\t",
                                    usecols=1, comments="#")
@@ -103,38 +111,32 @@ class StatQ(FileNaming):
         # return the plotting lists
         return self.r, self.rdf_data
 
-    def rdf_plot(self, rho, t, power, par_a,
-                 iso_scale=False,
-                 show_label=True,
-                 **kwargs):
+    def rdf_plot(self, sim_name, rho, t, power=None, par_a=None,
+                 iso_scale=False, show_label=True, **kwargs):
         """
-        Creates a plot for the Radial Distribution Function of the fluid, 
-        which depicts the microscopic density fluctuations of the molecules 
+        Creates a plot for the Radial Distribution Function of the fluid,
+        which depicts the microscopic density fluctuations of the molecules
         as a function of distance.
-        The parameters iso_scale is optional and should normally 
+        The parameters iso_scale is optional and should normally
         be set to False.
 
-        @param rho: Density
-        @param t: Temperature
-        @param power: Pair potential strength
-        @param par_a: Softening parameter
-        @param iso_scale: Optional, scales the values of r, the radius, 
+        @:param rho: Density
+        @:param t: Temperature
+        @:param power: Pair potential strength
+        @:param par_a: Softening parameter
+        @:param iso_scale: Optional, scales the values of r, the radius,
                           based on the isosbestic model that has been created
-        @param show_label:
+        @:param show_label:
         """
-        self.rdf(rho, t, power, par_a, iso_scale)
+        self.rdf(sim_name, rho, t, power, par_a, iso_scale)
         plt.figure('Interpolated RDF')
 
         max_scaling = np.max(self.rdf_data)  # Scaling the ymax
 
         # Naming the curves
-        name = ""
-        if show_label is True:
-            name = f"\N{GREEK SMALL LETTER RHO}: {self.rho_str}" \
-                   f" T: {self.t_str} n: {self.n_str} A: {self.a_str}"
-
-        plt.plot(self.r, self.rdf_data, '-',
-                 markersize=4, label=name, **kwargs)
+        file_id = self.file_searcher(rho, t, power, par_a)
+        name = self.get_label(file_id)
+        plt.plot(self.r, self.rdf_data, markersize=4, label=name, **kwargs)
 
         # Plot labels
         plt.xlabel(r"$r$")
@@ -150,22 +152,21 @@ class StatQ(FileNaming):
             plt.legend(loc="best", fancybox=True, prop={'size': 8})
 
     # Velocity Autocorrelation Function
-    def vaf(self, rho, t, power, par_a, iso_scale=False, **kwargs):
+    def vaf(self, sim_name, rho, t, power=None, par_a=None, iso_scale=False, **kwargs):
         """
         Creates a figure for the Velocity Autocorrelation Function of the fluid,
         which illustrates if the fluid remains a coupled system
         through time (correlated) or it uncouples.
 
-        @param rho: Density
-        @param t: Temperature
-        @param power: Pair potential strength
-        @param par_a: Softening parameter
-        @param iso_scale:
-        @type iso_scale:
-        @return: Nothing. Simply adds a plot on the corresponding canvas
+        @:param rho: Density
+        @:param t: Temperature
+        @:param power: Pair potential strength
+        @:param par_a: Softening parameter
+        @:param iso_scale:
+        @:return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = "Data" + file_id + ".txt"
+        data = f"{sim_name}Data{file_id}.txt"
 
         cr = np.loadtxt(data, usecols=8, delimiter='\t',
                         unpack=True, comments='#')
@@ -175,12 +176,12 @@ class StatQ(FileNaming):
         time_max = time_step * num_lines
         time = np.linspace(0, time_max, num_lines)
 
-        name = f"\N{GREEK SMALL LETTER RHO}: {self.rho_str} T: {self.t_str}"\
-               f"n: {self.n_str} A: {self.a_str}"
+        name = self.get_label(file_id)
 
         plt.figure('Velocity Autocorrelation Function')
         y = np.full(num_lines, 0)
 
+        # Scale the x-data on the isosbestic point
         if iso_scale is True:
             time = time * (rho ** (1.0 / 3.0)) * (t ** 0.5)
 
@@ -193,27 +194,27 @@ class StatQ(FileNaming):
         plt.legend(loc="best", ncol=1)
 
     # Mean Square Displacement
-    def msd(self, rho, t, power, par_a, **kwargs):
+    def msd(self, sim_name, rho, t, power=None, par_a=None, **kwargs):
         """
         Plots the Mean Square Displacement for our fluid.
-        According to diffusion theory the slope of the MSD corresponds 
+        According to diffusion theory the slope of the MSD corresponds
         to the inverse of the diffusion coefficient.
 
-        @param rho: Density
-        @param t: Temperature
-        @param power: Pair potential strength
-        @param par_a: Softening parameter
-        @return: msd list
+        @:param rho: Density
+        @:param t: Temperature
+        @:param power: Pair potential strength
+        @:param par_a: Softening parameter
+        @:return: msd list
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = f"Data{file_id}.txt"
+        data = f"{sim_name}Data{file_id}.txt"
 
         msd_data = np.loadtxt(data, usecols=7,
                               delimiter='\t', unpack=True)
 
         num_lines = int(len(msd_data))
         step = self.step / np.sqrt(t)
-        x = np.linspace(0, num_lines - 1, num=num_lines)
+        x = np.linspace(0*step, (num_lines - 1)*step, num=num_lines)
 
         # Perform a linear fit to the MSD data and get fit parameters
         grad, intercept, rms, p_val, std = stats.linregress(x, msd_data)
@@ -221,7 +222,7 @@ class StatQ(FileNaming):
         self.dif_err = np.append(self.dif_err, std)
         self.dif_y_int = np.append(self.dif_y_int, intercept)
 
-        name = file_id.replace("_", " ")
+        name = self.get_label(file_id)
         plt.figure('Mean Square Displacement')
         plt.plot(x, msd_data, label=name, **kwargs)
         plt.xlim(left=0, right=x[-1])
@@ -231,21 +232,21 @@ class StatQ(FileNaming):
 
         return msd_data
 
-    def diffusion_plot(self, rho, t, power, my_list):
+    def diffusion_plot(self, sim_name, rho, t, power, my_list):
         """
         A graph of the Diffusion coefficients D against a list of parameter A
 
-        @param rho: Density
-        @param t: Temperature
-        @param power: Potential strength parameter n
-        @param my_list: List of parameter A coefficients
-        @return: Figure of D vs A for a given number of iterations
+        @:param rho: Density
+        @:param t: Temperature
+        @:param power: Potential strength parameter n
+        @:param my_list: List of parameter A coefficients
+        @:return: Figure of D vs A for a given number of iterations
         """
 
         for i in my_list:
-            self.msd(rho, t, power, i)
+            self.msd(sim_name, rho, t, power, i)
             print("-----------------------------")
-        name = f"n: {str(power)}"
+        name = f"n: {power}"
 
         plt.figure('Diffusion coefficients D vs A')
         plt.plot(my_list, self.dif_coef, '--o', label=name, markersize=3.5)
@@ -261,20 +262,20 @@ class StatQ(FileNaming):
         self.j += 15
         self.v += 1
 
-    def vel_dist(self, rho, t, power, par_a):
+    def vel_dist(self, sim_name, rho, t, power=None, par_a=None):
         """
-        Plots the velocity distributions for the X, Y, Z and 
+        Plots the velocity distributions for the X, Y, Z and
         the combined velocity vector for the last saved position of the fluid.
 
-        @param rho: Density
-        @param t: Temperature
-        @param power: Pair potential strength
-        @param par_a: Softening parameter
-        @return: Nothing. Simply adds a plot on the corresponding canvas
+        @:param rho: Density
+        @:param t: Temperature
+        @:param power: Pair potential strength
+        @:param par_a: Softening parameter
+        @:return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = "Positions_Velocities" + file_id + ".txt"
-        name = f"n: {self.n_str} A: {self.a_str}"
+        data = f"{sim_name}Positions_Velocities{file_id}.txt"
+
         vx, vy, vz = np.loadtxt(data,
                                 usecols=(3, 4, 5),
                                 delimiter='\t',
@@ -306,18 +307,17 @@ class StatQ(FileNaming):
         v_plot.plot(x, pdf_mb, label='Theory')
 
         plt.xlim(left=0)
-        plt.title(self.n_str + ' ' + self.a_str)
+        plt.title(self.get_label(file_id))
         plt.legend(loc='best', fancybox=True)
 
-    def sf(self, rho, t, power, par_a):
+    def sf(self, sim_name, rho, t, power=None, par_a=None):
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = "Data" + file_id + ".txt"
-        name = f"n: {self.n_str} A: {self.a_str}"
-        
+        data = f"{sim_name}Data{file_id}.txt"
+
         sf = np.loadtxt(data, usecols=(9, 10, 11),
                         delimiter='\t', comments='#', unpack=True)
 
-        x = np.arange(1, len(sf[0])+1)
+        x = np.arange(1, len(sf[0]) + 1)
 
         fig, ax = plt.subplots(3, 1, figsize=(12, 6))
 
@@ -327,12 +327,11 @@ class StatQ(FileNaming):
             ax[i].legend(loc='best')
         ax[0].set_title(f'Structure Factor {file_id}')
 
+
 # %%
 if __name__ == "__main__":
-
     import os
     from mdtools.stat_quantities import *
     import matplotlib.pyplot as plt
 
     plt.style.use('default')
-

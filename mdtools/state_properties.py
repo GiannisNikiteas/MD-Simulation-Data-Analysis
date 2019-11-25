@@ -12,7 +12,7 @@ class StateProperties(FileNaming):
         self.p, self.c = 0, 0
         self.line_it = 0  # Index iterator for line styles
 
-    def energy_plots(self, rho, t, power, par_a):
+    def energy_plots(self, sim_name, rho, t, power=None, par_a=None):
         """
         Plots the average kinetic, potential and total energy.
         Separately and in a combined graph.
@@ -24,7 +24,7 @@ class StateProperties(FileNaming):
         @return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = f"Data{file_id}.txt"
+        data = f"{sim_name}Data{file_id}.txt"
 
         pot_en, kin_en = np.loadtxt(data, usecols=(3, 4),
                                     delimiter='\t', comments='#', unpack=True)
@@ -69,7 +69,7 @@ class StateProperties(FileNaming):
         all_f.plot(x, kin_en, 'r', x, pot_en, 'g', x, tot_en, 'b')
         all_f.set_ylim(top=5)
 
-    def potential_data(self, rho, t, power, par_a):
+    def potential_data(self, sim_name, rho, t, power=None, par_a=None):
         """
         Plots the average potential energy of the fluid.
 
@@ -80,23 +80,23 @@ class StateProperties(FileNaming):
         @return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = "Data" + file_id + ".txt"
+        data = f"{sim_name}Data{file_id}.txt"
 
         rho_list, u = np.loadtxt(data, usecols=(1, 3),
                                  delimiter='\t', comments='#', unpack=True)
         num_lines = int(len(u))
 
         #  Plots the Energies
-        name = file_id.replace('_', ' ')
+        name = self.get_label(file_id)
         time = num_lines * self.step
         x = np.linspace(0, time, num_lines)
         plt.figure('Potential Plots of Data')
         plt.plot(rho_list, u, label=name)
         plt.legend(loc='best', fancybox=True)
 
-    def pc(self, rho, t, power, par_a):
+    def pc(self, sim_name, rho, t, power=None, par_a=None):
         file_id = self.file_searcher(rho, t, power, par_a)
-        pc_name = "Data" + file_id + ".txt"
+        pc_name = f"{sim_name}Data{file_id}.txt"
 
         pc_data = np.loadtxt(pc_name, usecols=5, delimiter='\t',
                              comments='#', unpack=True)
@@ -105,7 +105,7 @@ class StateProperties(FileNaming):
         time = num_lines * self.step
         x = np.linspace(0, time, num=num_lines)
 
-        name = file_id.replace("_", " ")
+        name = self.get_label(file_id)
         plt.figure('Configurational Pressure')
         plt.plot(x, pc_data, label=name)
         plt.xlabel(r"Time $t$", size=18)
