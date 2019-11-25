@@ -8,14 +8,29 @@ from mdtools import StatQ, Isomorph, RDFAnalysis
 plt.style.use('default')
 os.chdir("/home/gn/Code/MD-simulation/examples/examplebin")
 
+# Lennard Jones pair potential
+run = StatQ(5000, 10**3)
+run.rdf_plot("lj_simple_run_", 0.5, 0.5)
+run.msd("lj_simple_run_", 0.5, 0.5)
+run.vaf("lj_simple_run_", 0.5, 0.5)
 
-N = [6, 7, 8, 9, 10, 12]
-RHO = [0.3, 0.5, 1.0, 1.5]
-T = [0.5, 1.0, 2.0]
-A = [0, 0.25, 0.50, 0.75, 0.8, 0.90]
+# Exponential pair potential
+run = StatQ(5000, 10**3)
+run.rdf_plot("exp_simple_run_", 0.5, 0.5, 8, 0.5)
+run.msd("exp_simple_run_", 0.5, 0.5, 8, 0.5)
+run.vaf("exp_simple_run_", 0.5, 0.5, 8, 0.5)
 
-run = StatQ(10000, 6**3*4)
-run.sf(0.5, 100, 8, 0.5)
+# GCM pair potential
+run = StatQ(5000, 10**3)
+run.rdf_plot("gcm_simple_run_", 0.5, 0.5)
+run.msd("gcm_simple_run_", 0.5, 0.5)
+run.vaf("gcm_simple_run_", 0.5, 0.5)
+
+# BIP pair potential
+run = StatQ(5000, 10**3)
+run.rdf_plot("bip_simple_run_", 0.5, 0.5, 8, 0.5)
+run.msd("bip_simple_run_", 0.5, 0.5, 8, 0.5)
+run.vaf("bip_simple_run_", 0.5, 0.5, 8, 0.5)
 
 plt.show()
 
