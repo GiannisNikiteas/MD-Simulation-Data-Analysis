@@ -7,12 +7,12 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='mdtools',
-    version='0.0.1',
+    version='0.1.0',
     packages=['mdtools'],
     url='https://github.com/GNikit/MD-Simulation-Data-Analysis',
     license='',
     author='GNikit',
-    author_email='giannis_nikiteas@hotmail.com',
+    author_email='giannis.nikiteas@gmail.com',
     description='A package responsible for Molecular Dynamics data analysis',
     long_description=LONG_DESC,
     classifiers=[
