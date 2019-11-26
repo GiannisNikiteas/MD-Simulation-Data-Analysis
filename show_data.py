@@ -6,7 +6,7 @@ from mdtools import StatQ, Isomorph, RDFAnalysis, ParticleVisualisation
 
 plt.style.use('default')
 # NOTE: change to your directory where the data is
-os.chdir("/home/gn/Code/MD-simulation/examples/examplebin")
+os.chdir("/home/gn/Code/md-sim/examples/examplebin")
 
 # Lennard Jones pair potential
 run = StatQ(5000, 10**3)
@@ -36,7 +36,7 @@ run.vaf("bip_simple_run_", 0.5, 0.5, 8, 0.5)
 # %%
 
 plt.style.use('default')
-os.chdir("/home/gn/Code/MD-simulation/examples/examplebin")
+os.chdir("/home/gn/Code/md-sim/examples/examplebin")
 
 # Plot the fluid visualisation methods
 
@@ -50,7 +50,7 @@ plt.show()
 # %%
 
 plt.style.use('default')
-os.chdir("/home/gn/Code/MD-simulation/examples/examplebin")
+os.chdir("/home/gn/Code/md-sim/examples/examplebin")
 
 # Plot the 3D data
 run = ParticleVisualisation(1000, 5**3)

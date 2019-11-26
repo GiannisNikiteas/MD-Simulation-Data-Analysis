@@ -9,7 +9,7 @@ setup(
     name='mdtools',
     version='0.1.0',
     packages=['mdtools'],
-    url='https://github.com/GNikit/MD-Simulation-Data-Analysis',
+    url='https://github.com/GNikit/md-tools',
     license='',
     author='GNikit',
     author_email='giannis.nikiteas@gmail.com',

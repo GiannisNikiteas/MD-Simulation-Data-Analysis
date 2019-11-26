@@ -1,6 +1,6 @@
-# MD-Simulation-Data-Analysis
+# md-tools
 
-Meant to be used in combination with the [MD-simulation](https://github.com/GiannisNikiteas/MD-simulation) in order to assist in the
+Meant to be used in combination with the [md-sim](https://github.com/GiannisNikiteas/md-sim) in order to assist in the
 analysis and visualisation of the MD fluid and its statistical properties.
 
 It provides methods that allow for visualisation of quantities such as the
