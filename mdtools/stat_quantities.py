@@ -90,7 +90,7 @@ class StatQ(FileNaming):
 
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = f"{sim_name}RDF{file_id}.txt"
+        data = f"{sim_name}RDF{file_id}.log"
         # self.rdf_bins = sum(1 for line in open(data))
         self.rdf_data = np.loadtxt(data, delimiter="\t",
                                    usecols=1, comments="#")
@@ -166,7 +166,7 @@ class StatQ(FileNaming):
         @:return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = f"{sim_name}Data{file_id}.txt"
+        data = f"{sim_name}Data{file_id}.log"
 
         cr = np.loadtxt(data, usecols=8, delimiter='\t',
                         unpack=True, comments='#')
@@ -207,7 +207,7 @@ class StatQ(FileNaming):
         @:return: msd list
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = f"{sim_name}Data{file_id}.txt"
+        data = f"{sim_name}Data{file_id}.log"
 
         msd_data = np.loadtxt(data, usecols=7,
                               delimiter='\t', unpack=True)
@@ -274,7 +274,7 @@ class StatQ(FileNaming):
         @:return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = f"{sim_name}Positions_Velocities{file_id}.txt"
+        data = f"{sim_name}Positions_Velocities{file_id}.log"
 
         vx, vy, vz = np.loadtxt(data,
                                 usecols=(3, 4, 5),
@@ -312,7 +312,7 @@ class StatQ(FileNaming):
 
     def sf(self, sim_name, rho, t, power=None, par_a=None):
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = f"{sim_name}Data{file_id}.txt"
+        data = f"{sim_name}Data{file_id}.log"
 
         sf = np.loadtxt(data, usecols=(9, 10, 11),
                         delimiter='\t', comments='#', unpack=True)

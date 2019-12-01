@@ -24,7 +24,7 @@ class StateProperties(FileNaming):
         @return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = f"{sim_name}Data{file_id}.txt"
+        data = f"{sim_name}Data{file_id}.log"
 
         pot_en, kin_en = np.loadtxt(data, usecols=(3, 4),
                                     delimiter='\t', comments='#', unpack=True)
@@ -80,7 +80,7 @@ class StateProperties(FileNaming):
         @return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = f"{sim_name}Data{file_id}.txt"
+        data = f"{sim_name}Data{file_id}.log"
 
         rho_list, u = np.loadtxt(data, usecols=(1, 3),
                                  delimiter='\t', comments='#', unpack=True)
@@ -96,7 +96,7 @@ class StateProperties(FileNaming):
 
     def pc(self, sim_name, rho, t, power=None, par_a=None):
         file_id = self.file_searcher(rho, t, power, par_a)
-        pc_name = f"{sim_name}Data{file_id}.txt"
+        pc_name = f"{sim_name}Data{file_id}.log"
 
         pc_data = np.loadtxt(pc_name, usecols=5, delimiter='\t',
                              comments='#', unpack=True)

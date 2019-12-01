@@ -24,7 +24,7 @@ class ParticleVisualisation(FileNaming):
         @:return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = f"{sim_name}Positions_Velocities{file_id}.txt"
+        data = f"{sim_name}Positions_Velocities{file_id}.log"
 
         rx, ry, rz = np.loadtxt(data, usecols=(0, 1, 2), delimiter='\t',
                                 comments='#', unpack=True)
@@ -48,7 +48,7 @@ class ParticleVisualisation(FileNaming):
         @:return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = f"{sim_name}Positions_Velocities{file_id}.txt"
+        data = f"{sim_name}Positions_Velocities{file_id}.log"
 
         rx, ry, rz, vx, vy, vz = np.loadtxt(data,
                                             # redundant
@@ -78,7 +78,7 @@ class ParticleVisualisation(FileNaming):
         @:return: Nothing. Simply adds a plot on the corresponding canvas
         """
         file_id = self.file_searcher(rho, t, power, par_a)
-        data = f"{sim_name}Positions_Velocities{file_id}.txt"
+        data = f"{sim_name}Positions_Velocities{file_id}.log"
 
         rx, ry, rz, vx, vy, vz = np.loadtxt(data,
                                             # redundant
@@ -105,9 +105,9 @@ class ParticleVisualisation(FileNaming):
 
         file_id = self.file_searcher(rho, t, power, par_a)
 
-        x_all = np.loadtxt(f"{sim_name}x_data{file_id}.txt")
-        y_all = np.loadtxt(f"{sim_name}y_data{file_id}.txt")
-        z_all = np.loadtxt(f"{sim_name}z_data{file_id}.txt")
+        x_all = np.loadtxt(f"{sim_name}x_data{file_id}.log")
+        y_all = np.loadtxt(f"{sim_name}y_data{file_id}.log")
+        z_all = np.loadtxt(f"{sim_name}z_data{file_id}.log")
 
         fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot(111, projection="3d")
