@@ -29,10 +29,7 @@ python setup.py install
 To edit, debug or develop install the package by:
 
 ``` bash
-python setup.py develop 
+pip3 install -e .
 ```
 
 <!-- ### Usage -->
-
-
-
