@@ -1,10 +1,10 @@
 # %%
-from mdtools import ParticleVisualisation
 import os
 import matplotlib.pyplot as plt
 from mdtools import StatQ, Isomorph, RDFAnalysis, ParticleVisualisation
 
 plt.style.use('default')
+# %%
 # NOTE: change to your directory where the data is
 os.chdir("/home/gn/Code/md-sim/examples/examplebin")
 
