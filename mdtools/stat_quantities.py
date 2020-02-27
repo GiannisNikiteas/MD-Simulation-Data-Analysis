@@ -47,6 +47,7 @@ class FileNaming(object):
         name = name.replace("rho", "\N{GREEK SMALL LETTER RHO}")
         return name
 
+
 class StatQ(FileNaming):
 
     def __init__(self, steps, particles):
@@ -57,7 +58,6 @@ class StatQ(FileNaming):
         self.dif_y_int = np.array([])
         self.line_style = ['solid', 'dashed', 'dotted', 'dashdot']
         self.interpolated_data = []
-        self.dr = None
         self.step = 0.005
 
         # This is an iterator for the color array
@@ -69,7 +69,6 @@ class StatQ(FileNaming):
         # RDF shared variables
         self.r = []  # container for the rdf-x data
         self.rdf_data = []  # container for the rdf y-data
-        self.rdf_bins = 0  # number of lines filled with data in the rdf file
         self.rg = 3.0  # cut-off radius
         self.dr = 0  # distance increment in the radius
         self.iso = 0  # x-location for the theoretical isosbestic points
@@ -91,18 +90,8 @@ class StatQ(FileNaming):
         """
         file_id = self.file_searcher(rho, t, power, par_a)
         data = f"{sim_name}RDF{file_id}.log"
-        # self.rdf_bins = sum(1 for line in open(data))
-        self.rdf_data = np.loadtxt(data, delimiter="\t",
-                                   usecols=1, comments="#")
-        # Calculate the number of bins present in RDF
-        self.rdf_bins = int(len(self.rdf_data))
-
-        # Bin width in r-units
-        self.dr = self.rg / self.rdf_bins
-
-        # r=0 is intentionally neglected due to division by 0
-        self.r = np.linspace(1, self.rdf_bins, self.rdf_bins)
-        self.r = np.multiply(self.r, self.dr)
+        self.r, self.rdf_data = np.loadtxt(data, delimiter="\t",
+                                           usecols=(0, 1), comments="#")
 
         # Isomorphic scaling of r for the isomorph plane
         if iso_scale is True:
